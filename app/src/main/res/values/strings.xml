@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">JMemo</string>
+    <string name="action_settings">Settings</string>
+    <string name="menu_camera">Camera</string>
+    <string name="menu_album">Album</string>
+    <string name="menu_url">URL</string>
+    <string name="menu_save">Save</string>
+    <string name="menu_delete">Delete</string>
+</resources>

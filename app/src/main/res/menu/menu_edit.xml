@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.jmemo.EditActivity">
+    <item
+        android:id="@+id/deleteMenuItem"
+        android:icon="@drawable/ic_delete_black_24dp"
+        android:title="@string/menu_delete"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/saveMenuItem"
+        android:icon="@drawable/ic_save_black_24dp"
+        android:title="@string/menu_save"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/cameraMenuItem"
+        android:icon="@drawable/ic_add_a_photo_black_24dp"
+        android:title="@string/menu_camera" />
+    <item
+        android:id="@+id/albumMenuItem"
+        android:icon="@drawable/ic_photo_library_black_24dp"
+        android:title="@string/menu_album" />
+    <item
+        android:id="@+id/urlMenuItem"
+        android:icon="@drawable/ic_public_black_24dp"
+        android:title="@string/menu_url" />
+</menu>

@@ -2,6 +2,7 @@ package com.example.jmemo
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Parcelable
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey

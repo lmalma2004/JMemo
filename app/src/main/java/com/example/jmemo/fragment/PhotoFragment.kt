@@ -1,25 +1,24 @@
-package com.example.jmemo
+package com.example.jmemo.fragment
 
 
-import android.graphics.Color
-import android.net.Uri
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
-import io.realm.Realm
-import io.realm.kotlin.where
-import kotlinx.android.synthetic.*
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
+import com.example.jmemo.R
+import com.example.jmemo.activity.EditActivity
 import kotlinx.android.synthetic.main.fragment_photo.*
-import org.jetbrains.anko.alert
-import org.jetbrains.anko.yesButton
+import java.io.FileNotFoundException
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_URI_IMAGE = "uri"
-private const val ARG_BYTEARRAY_IMAGE = "byteArray"
+private const val ARG_IMAGE = "image"
+private const val ARG_ID = "id"
 /**
  * A simple [Fragment] subclass.
  * Use the [PhotoFragment.newInstance] factory method to
@@ -27,15 +26,14 @@ private const val ARG_BYTEARRAY_IMAGE = "byteArray"
  */
 class PhotoFragment : Fragment() {
     // TODO: Rename and change types of parameters
-    val realm = Realm.getDefaultInstance()
-    private var uri: String? = null
-    private var byteArray: ByteArray? = null
+    private var image: String? = null
+    private var id: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            uri = it.getString(ARG_URI_IMAGE)
-            byteArray = it.getByteArray(ARG_BYTEARRAY_IMAGE)
+            image = it.getString(ARG_IMAGE)
+            id = it.getLong(ARG_ID)
         }
     }
 
@@ -49,19 +47,12 @@ class PhotoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if(uri == ""){
-            Glide.with(this).asBitmap().load(byteArray).into(imageView)
-        }
-        else{
-            Glide.with(this).load(uri).into(imageView)
-        }
+        Glide.with(this).load(image).into(imageView)
+        //Glide에서 이미지 가져오기 실패했을때 처리필요
         imageView.setOnClickListener {
-            //imageView.setImageResource(0)
-            //액티비티로 값을 줘서 EditActivity에서
-            //addedImage 삭제, realm 삭제, fragment 다시그리기
-            //imageView.visibility = View.GONE
-            //액티비티에서 addedImage객체를 가져와서?
             view.visibility = View.GONE
+            val editActivity = activity as EditActivity
+            editActivity.deleteImageFromAdded(image!!)
         }
     }
 
@@ -76,11 +67,11 @@ class PhotoFragment : Fragment() {
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(uri: String, byteArray: ByteArray, id:Long, addedImages: ArrayList<Image>) =
+        fun newInstance(image: String, id:Long) =
             PhotoFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_URI_IMAGE, uri)
-                    putByteArray(ARG_BYTEARRAY_IMAGE, byteArray)
+                    putString(ARG_IMAGE, image)
+                    putLong(ARG_ID, id)
                 }
             }
     }

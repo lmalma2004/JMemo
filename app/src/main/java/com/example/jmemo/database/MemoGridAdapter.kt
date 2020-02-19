@@ -1,4 +1,4 @@
-package com.example.jmemo
+package com.example.jmemo.database
 
 import android.text.format.DateFormat
 import android.view.LayoutInflater
@@ -6,11 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.jmemo.R
 import io.realm.OrderedRealmCollection
 import io.realm.RealmBaseAdapter
-import kotlinx.android.synthetic.main.fragment_photo.*
 
 class MemoGridAdapter(realmResult: OrderedRealmCollection<Memo>)
     : RealmBaseAdapter<Memo>(realmResult){
@@ -34,12 +33,7 @@ class MemoGridAdapter(realmResult: OrderedRealmCollection<Memo>)
             vh.dateTextView.text = DateFormat.format("yyyy/MM/dd", memo.date)
             vh.bodyTextView.text = memo.body
             if(memo.images.size != 0){
-                if(memo.images[0]!!.urlOfImage == ""){
-                    Glide.with(view).asBitmap().load(memo.images[0]!!.image).into(vh.realmImageView)
-                }
-                else{
-                    Glide.with(view).load(memo.images[0]!!.urlOfImage).into(vh.realmImageView)
-                }
+                Glide.with(view).load(memo.images.first()).into(vh.realmImageView)
             }
         }
         return view

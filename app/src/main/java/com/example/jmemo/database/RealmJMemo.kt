@@ -1,4 +1,4 @@
-package com.example.jmemo
+package com.example.jmemo.database
 
 import android.app.Application
 import io.realm.Realm

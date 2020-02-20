@@ -47,8 +47,11 @@ class PhotoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Glide.with(this).load(image).into(imageView)
-        //Glide에서 이미지 가져오기 실패했을때 처리필요
+        //Glide.with(this).load(image).into(imageView)
+        Glide.with(this).load(image)
+            .placeholder(R.drawable.ic_sync_black_24dp)
+            .error(R.drawable.ic_error).into(imageView)
+
         imageView.setOnClickListener {
             view.visibility = View.GONE
             val editActivity = activity as EditActivity

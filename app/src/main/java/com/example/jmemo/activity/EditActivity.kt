@@ -60,8 +60,10 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
 
         override fun onPostExecute(result: JMetaData?) {
             super.onPostExecute(result)
-            if(result == null)
+            if(result == null) {
+                toast("URL 정보를 가져올 수 없습니다. 인터넷 연결을 확인하세요")
                 return
+            }
 
             val preSize = addedImages.size
             if(result.imageUrl == "")

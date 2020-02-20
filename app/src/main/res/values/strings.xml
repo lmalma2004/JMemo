@@ -6,6 +6,10 @@
     <string name="menu_url">URL</string>
     <string name="menu_save">Save</string>
     <string name="menu_delete">Delete</string>
+    <string name="title">제목</string>
+    <string name="body">본문</string>
+    <string name="image">사진</string>
+    <string name="image_delete">삭제버튼</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

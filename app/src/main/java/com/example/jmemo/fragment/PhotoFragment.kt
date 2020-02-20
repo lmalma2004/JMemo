@@ -1,24 +1,22 @@
 package com.example.jmemo.fragment
 
 
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.RequestOptions
 import com.example.jmemo.R
 import com.example.jmemo.activity.EditActivity
 import kotlinx.android.synthetic.main.fragment_photo.*
-import java.io.FileNotFoundException
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_IMAGE = "image"
 private const val ARG_ID = "id"
+private const val ARG_IMAGE_NUM="image_num"
+private const val ARG_IMAGE_CNT="image_cnt"
 /**
  * A simple [Fragment] subclass.
  * Use the [PhotoFragment.newInstance] factory method to
@@ -28,12 +26,16 @@ class PhotoFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var image: String? = null
     private var id: Long? = null
+    private var imageNum: Int? = null
+    private var imageCnt: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
             image = it.getString(ARG_IMAGE)
             id = it.getLong(ARG_ID)
+            imageNum = it.getInt(ARG_IMAGE_NUM)
+            imageCnt = it.getInt(ARG_IMAGE_CNT)
         }
     }
 
@@ -51,12 +53,25 @@ class PhotoFragment : Fragment() {
         Glide.with(this).load(image)
             .placeholder(R.drawable.ic_sync_black_24dp)
             .error(R.drawable.ic_error).into(imageView)
+        imageDeleteButton.setOnClickListener {
+            view.visibility = View.GONE
+            val editActivity = activity as EditActivity
+            editActivity.deleteImage(image!!)
+        }
 
+        //if(imageCnt != null && imageCnt!! > 1)
+        //    imageNumTextView.setText(imageNum.toString() +"/" + imageCnt.toString())
+        /*
         imageView.setOnClickListener {
             view.visibility = View.GONE
             val editActivity = activity as EditActivity
-            editActivity.deleteImageFromAdded(image!!)
-        }
+            editActivity.deleteImage(image!!)
+        }*/
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+
     }
 
     companion object {
@@ -70,7 +85,16 @@ class PhotoFragment : Fragment() {
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(image: String, id:Long) =
+        fun newInstance(image: String, imageNum: Int, imageCnt: Int, id: Long) =
+            PhotoFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_IMAGE, image)
+                    putLong(ARG_ID, id)
+                    putInt(ARG_IMAGE_NUM, imageNum)
+                    putInt(ARG_IMAGE_CNT, imageCnt)
+                }
+            }
+        fun newInstance(image: String, id: Long) =
             PhotoFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_IMAGE, image)

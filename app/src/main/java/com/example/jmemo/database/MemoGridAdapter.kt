@@ -33,7 +33,10 @@ class MemoGridAdapter(realmResult: OrderedRealmCollection<Memo>)
             vh.dateTextView.text = DateFormat.format("yyyy/MM/dd", memo.date)
             vh.bodyTextView.text = memo.body
             if(memo.images.size != 0){
-                Glide.with(view).load(memo.images.first()).into(vh.realmImageView)
+                //Glide.with(view).load(memo.images.first()).into(vh.realmImageView)
+                Glide.with(view).load(memo.images.first())
+                    .placeholder(R.drawable.ic_sync_black_24dp)
+                    .error(R.drawable.ic_error).into(vh.realmImageView)
             }
         }
         return view

@@ -5,7 +5,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
 import kotlinx.android.synthetic.main.fragment_photo.*
-import java.util.function.Predicate
 
 class PhotoFragmentPagerAdapter(fm: FragmentManager, behavior: Int) : FragmentStatePagerAdapter(fm, behavior) {
     private val imageItems = ArrayList<Fragment>()

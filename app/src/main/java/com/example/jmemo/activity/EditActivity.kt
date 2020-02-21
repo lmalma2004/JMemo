@@ -19,10 +19,11 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import com.example.jmemo.*
-import com.example.jmemo.R.id.deleteMenuItem
+import com.example.jmemo.R.id.action_settings
+import com.example.jmemo.R.id.editMenuItem
 import com.example.jmemo.database.Memo
 import com.example.jmemo.fragment.PhotoFragment
-import com.example.jmemo.fragment.PhotoFragmentPagerAdapter
+import com.example.jmemo.adapter.PhotoFragmentPagerAdapter
 import com.example.jmemo.fragment.UrlDialogFragment
 import io.realm.Realm
 import io.realm.kotlin.createObject
@@ -45,6 +46,8 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     private val REQUEST_IMAGE_GALLERY = 1
     private val addedImages: ArrayList<String> = arrayListOf()
     private val deleteImages: ArrayList<String> = arrayListOf()
+    private val menuItems: ArrayList<MenuItem> = arrayListOf()
+    private var deleteMenuItem: MenuItem? = null
     private var realmImageCnt = 0
 
     inner class JMetadataTask :AsyncTask<String, JMetaData, JMetaData>(){
@@ -77,8 +80,9 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit)
-        setViewFromRealm()
+        setViewFromRealm(false)
         setViewPagerMarginPadding()
+        setEditable(false)
     }
     override fun onDestroy() {
         super.onDestroy()
@@ -100,18 +104,30 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     }
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_edit, menu)
-        val deleteMemoItem = menu!!.findItem(deleteMenuItem)
-        val id = intent.getLongExtra("id", -1L)
-        if(id == -1L)
-            deleteMemoItem.setVisible(false)
-        else
-            deleteMemoItem.setVisible(true)
+        val editMenu = menu!!.findItem(editMenuItem)
+        deleteMenuItem = menu!!.findItem(R.id.deleteMenuItem)
+        for(menuItem in 0..menu!!.size() - 1){
+            val currMenu = menu.getItem(menuItem)
+            menuItems.add(currMenu)
+            if(currMenu != editMenu)
+                currMenu.setVisible(false)
+        }
         return true
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = intent.getLongExtra("id", -1L)
 
         when(item?.itemId){
+            R.id.editMenuItem ->{
+                setEditable(true)
+                for(menuItem in 0..menuItems.size - 1){
+                    menuItems[menuItem].setVisible(true)
+                }
+
+                if(id == -1L)
+                    deleteMenuItem!!.setVisible(false)
+                item.setVisible(false)
+            }
             R.id.cameraMenuItem ->{
                 if(!isPermissionCAMERA())
                     permissionCAMERA()
@@ -230,7 +246,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             return
         addedImages.add(image)
 
-        alert(image + "의 URL이 추가되었습니다."){
+        alert(image + "의 사진이 추가되었습니다."){
             yesButton {}
         }.show()
     }
@@ -293,22 +309,22 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         }.show()
     }
 
-    private fun setViewFromRealm(){
+    private fun setViewFromRealm(deleteButtonVisible: Boolean){
         val id = intent.getLongExtra("id", -1L)
         if(id == -1L)
             return
         val memo = realm.where<Memo>().equalTo("id", id).findFirst()!!
         titleEditText.setText(memo.title)
         bodyEditText.setText(memo.body)
-        setImageFromRealm(id)
+        setImageFromRealm(id, deleteButtonVisible)
     }
-    private fun setImageFromRealm(id: Long){
+    private fun setImageFromRealm(id: Long, deleteButtonVisible: Boolean){
         val currMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
         val images = currMemo.images
         val fragments = ArrayList<Fragment>()
         if(images.size != 0){
             for(image in 0..images.size - 1){
-                fragments.add(PhotoFragment.newInstance(images[image]!!, id))
+                fragments.add(PhotoFragment.newInstance(images[image]!!, id, deleteButtonVisible))
             }
         }
         val adapter = PhotoFragmentPagerAdapter(
@@ -322,7 +338,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         val fragments = ArrayList<Fragment>()
         if(addedImages.size != 0){
             fragments.add(
-                PhotoFragment.newInstance(addedImages[image], image-1L)
+                PhotoFragment.newInstance(addedImages[image], image-1L, true)
             )
         }
         //이미 사진들이 있는 경우
@@ -365,6 +381,17 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         val margin = dpValue * d
         viewPager.setPadding(margin.toInt(), 0, margin.toInt(), 0)
         viewPager.pageMargin = margin.toInt() / 2
+    }
+    private fun setEditable(editable: Boolean){
+        if(editable){
+            titleEditText.isFocusableInTouchMode = true
+            bodyEditText.isFocusableInTouchMode = true
+            setViewFromRealm(true)
+        }
+        else{
+            titleEditText.isFocusableInTouchMode = false
+            bodyEditText.isFocusableInTouchMode = false
+        }
     }
 
 }

@@ -17,13 +17,14 @@
         android:textColor="@android:color/black"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:fontFamily="@font/nanumbarunpenr"
         app:layout_constraintBottom_toTopOf="@+id/dateTextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
-        tools:text="제목" />
+        tools:text="@string/title" />
 
     <TextView
         android:id="@+id/bodyTextView"
@@ -35,13 +36,14 @@
         android:maxLines="4"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="@android:color/black"
+        android:fontFamily="@font/nanumbarunpenr"
         app:layout_constraintBottom_toTopOf="@+id/dateTextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titleTextView"
         app:layout_constraintVertical_bias="0.0"
-        tools:text="본문" />
+        tools:text="@string/body" />
 
     <TextView
         android:id="@+id/dateTextView"
@@ -54,13 +56,14 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
         android:textSize="12sp"
         android:textStyle="italic"
+        android:fontFamily="@font/nanumbarunpenr"
         app:layout_constraintBottom_toTopOf="@+id/realmImageView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bodyTextView"
         app:layout_constraintVertical_bias="0.0"
-        tools:text="2020-02-17" />
+        tools:text="2020-02-24" />
 
     <ImageView
         android:id="@+id/realmImageView"

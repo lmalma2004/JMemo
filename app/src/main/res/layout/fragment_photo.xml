@@ -16,14 +16,14 @@
             android:scaleType="fitCenter"
             tools:src="@tools:sample/avatars" />
 
-        <ImageButton
-            android:id="@+id/imageDeleteButton"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_gravity="top|right"
-            android:background="#00000000"
-            android:contentDescription="@string/image_delete"
-            android:scaleType="fitXY"
-            android:src="@drawable/ic_delete"
-            android:tint="@android:color/black" />
+    <ImageButton
+        android:id="@+id/imageDeleteButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_gravity="top|end"
+        android:background="#00000000"
+        android:contentDescription="@string/image_delete"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_delete"
+        android:tint="@android:color/black" />
     </FrameLayout>

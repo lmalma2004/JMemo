@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import com.example.jmemo.database.Memo
-import com.example.jmemo.database.MemoGridAdapter
+import com.example.jmemo.adapter.MemoGridAdapter
 import com.example.jmemo.R
 import io.realm.Realm
 import io.realm.Sort

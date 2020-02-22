@@ -32,6 +32,7 @@ import io.realm.Realm
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_edit.*
+import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.toast
 import org.jetbrains.anko.yesButton
@@ -96,6 +97,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         super.onCreate(savedInstanceState)
         id = intent.getLongExtra("id", -1L)
         setContentView(R.layout.activity_edit)
+        setSupportActionBar(toolbar2)
         setViewFromRealm(false)
         setViewPagerMarginPadding()
     }
@@ -121,7 +123,6 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         menuInflater.inflate(R.menu.menu_edit, menu)
         val editMenu = menu!!.findItem(editMenuItem)
         deleteMenu = menu!!.findItem(deleteMenuItem)
-        //val id = intent.getLongExtra("id", -1L)
         if(id == -1L) {
             setEditable(true)
             editMenu.setVisible(false)
@@ -143,7 +144,6 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         return true
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        //val id = intent.getLongExtra("id", -1L)
 
         when(item?.itemId){
             R.id.editMenuItem ->{
@@ -160,38 +160,32 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
                     permissionCAMERA()
                 else
                     sendTakePhotoIntent()
-                return true
             }
             R.id.albumMenuItem ->{
                 if(!isPermissionGALLERY())
                     permissionGALLERY()
                 else
                     sendGalleyPhotoIntent()
-                return true
             }
             R.id.urlMenuItem ->{
                 val uriDialogFragment = UrlDialogFragment.getInstance()
                 uriDialogFragment.show(supportFragmentManager, UrlDialogFragment.INPUT_URL_FROM_DIALOG)
-                return true
             }
             R.id.saveMenuItem ->{
                 if(id == -1L)
                     insertMemo()
                 else
                     updateMemo(id)
-                return true
             }
             R.id.deleteMenuItem ->{
                 val deleteDialogFragment = DeleteDialogFragment.getInstance()
                 deleteDialogFragment.show(supportFragmentManager, DeleteDialogFragment.DELETE_DIALOG)
-                return true
             }
         }
         return super.onOptionsItemSelected(item)
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        //val id = intent.getLongExtra("id", -1L)
 
         if(resultCode == RESULT_OK){
             when(requestCode){
@@ -339,7 +333,6 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     }
 
     private fun setViewFromRealm(deleteButtonVisible: Boolean){
-        //val id = intent.getLongExtra("id", -1L)
         if(id == -1L)
             return
         val memo = realm.where<Memo>().equalTo("id", id).findFirst()!!

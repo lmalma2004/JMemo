@@ -4,9 +4,12 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.jmemo.database.Memo
-import com.example.jmemo.adapter.MemoGridAdapter
 import com.example.jmemo.R
+import com.example.jmemo.adapter.MemoGridRecycleAdapter
+import com.example.jmemo.adapter.MemoLinearRecycleAdapter
 import io.realm.Realm
 import io.realm.Sort
 import io.realm.kotlin.where
@@ -17,55 +20,66 @@ import org.jetbrains.anko.startActivity
 
 class MainActivity : AppCompatActivity() {
     private val realm = Realm.getDefaultInstance()
+    private val GRIDTYPE = true
+    private val LINEARTYPE = false
+    private var currLayout = GRIDTYPE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-        setViewFromRealm()
-        setEventGridView()
-        setEventFab()
-    }
-    override fun onRestart() {
-        super.onRestart()
-        setViewFromRealm()
-        setEventGridView()
+        setView()
         setEventFab()
     }
     override fun onResume() {
         super.onResume()
-        setViewFromRealm()
-        setEventGridView()
-        setEventFab()
+        setView()
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        setView()
     }
     override fun onDestroy() {
         super.onDestroy()
         realm.close()
     }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+        when (item.itemId) {
+            R.id.show_grid ->{
+                setViewGridFromRealm()
+                currLayout = GRIDTYPE
+            }
+            R.id.show_linear->{
+                setViewLinearFromRealm()
+                currLayout = LINEARTYPE
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    fun setView(){
+        when(currLayout){
+            GRIDTYPE-> setViewGridFromRealm()
+            LINEARTYPE-> setViewLinearFromRealm()
         }
     }
-    fun setViewFromRealm(){
+    fun setViewGridFromRealm(){
         val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
-        val adapter = MemoGridAdapter(realmResult)
-        memoListGridView.adapter = adapter
+        memoListRecyclerView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        val adapter = MemoGridRecycleAdapter(realmResult, this)
+        memoListRecyclerView.adapter = adapter
         realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
     }
-    fun setEventGridView(){
-        memoListGridView.setOnItemClickListener { parent, view, position, id ->
-            startActivity<EditActivity>("id" to id)
-        }
+    fun setViewLinearFromRealm(){
+        val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
+        memoListRecyclerView.layoutManager = LinearLayoutManager(this)
+        val adapter = MemoLinearRecycleAdapter(realmResult, this)
+        memoListRecyclerView.adapter = adapter
+        realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
     }
     fun setEventFab(){
         addMemoFab.setOnClickListener {

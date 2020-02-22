@@ -13,6 +13,25 @@
         android:isScrollContainer="true"
         android:scrollbars="vertical">
 
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar2"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:theme="@style/TextViewStyle"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+        </com.google.android.material.appbar.AppBarLayout>
+
         <EditText
             android:id="@+id/titleEditText"
             android:layout_width="0dp"
@@ -31,7 +50,7 @@
             android:fontFamily="@font/nanumbarunpenr"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/appbar"
             tools:targetApi="o" />
 
         <EditText
@@ -74,7 +93,7 @@
             android:id="@+id/lastDateTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="마지막 수정:2020년 2월 22일"
+            android:layout_marginTop="8dp"
             android:fontFamily="@font/nanumbarunpenr"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="@+id/viewPager"
@@ -85,7 +104,6 @@
             android:id="@+id/initDateTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="만든날짜:2020년 2월 21일"
             android:fontFamily="@font/nanumbarunpenr"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"

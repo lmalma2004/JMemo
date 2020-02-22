@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.view.marginStart
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -24,7 +23,7 @@ class MemoGridAdapter(realmResult: OrderedRealmCollection<Memo>)
         val view: View
 
         if(convertView == null){
-            view = LayoutInflater.from(parent?.context).inflate(R.layout.item_memo, parent, false)
+            view = LayoutInflater.from(parent?.context).inflate(R.layout.item_memo_grid, parent, false)
             vh = ViewHolderOfGridView(view)
             view.tag = vh
         }

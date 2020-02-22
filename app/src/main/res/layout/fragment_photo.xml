@@ -6,7 +6,7 @@
     tools:context=".fragment.PhotoFragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/border_layout">
+        android:background="@drawable/fill_background_layout">
 
         <ImageView
             android:id="@+id/imageView"

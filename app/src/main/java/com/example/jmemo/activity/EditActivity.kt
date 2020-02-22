@@ -19,11 +19,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import com.example.jmemo.*
-import com.example.jmemo.R.id.action_settings
+import com.example.jmemo.R.id.deleteMenuItem
 import com.example.jmemo.R.id.editMenuItem
 import com.example.jmemo.database.Memo
 import com.example.jmemo.fragment.PhotoFragment
 import com.example.jmemo.adapter.PhotoFragmentPagerAdapter
+import com.example.jmemo.fragment.DeleteDialogFragment
 import com.example.jmemo.fragment.UrlDialogFragment
 import io.realm.Realm
 import io.realm.kotlin.createObject
@@ -47,9 +48,13 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     private val addedImages: ArrayList<String> = arrayListOf()
     private val deleteImages: ArrayList<String> = arrayListOf()
     private val menuItems: ArrayList<MenuItem> = arrayListOf()
-    private var deleteMenuItem: MenuItem? = null
-    private var realmImageCnt = 0
+    private var deleteMenu: MenuItem? = null
+    var id: Long = -1L
 
+    inner class JMetaData(url: String?, imageUrl: String?) {
+        var url = url
+        var imageUrl = imageUrl
+    }
     inner class JMetadataTask :AsyncTask<String, JMetaData, JMetaData>(){
         var url: String = ""
         override fun doInBackground(vararg params: String?): JMetaData? {
@@ -71,18 +76,26 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             if(preSize < currSize)
                 setImageFromAddedImages(currSize - 1)
         }
-    }
-    inner class JMetaData(url: String?, imageUrl: String?) {
-        var url = url
-        var imageUrl = imageUrl
+        private fun getImageUrlFromUrl(url: String?): JMetaData?{
+            try{
+                val metadata = JMetaData(url, "")
+                val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
+                if(doc.select("meta[property=og:image]").size != 0)
+                    metadata.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
+                return metadata
+            }catch (e: Exception){
+                e.printStackTrace()
+                return null
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        id = intent.getLongExtra("id", -1L)
         setContentView(R.layout.activity_edit)
         setViewFromRealm(false)
         setViewPagerMarginPadding()
-        setEditable(false)
     }
     override fun onDestroy() {
         super.onDestroy()
@@ -105,17 +118,30 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_edit, menu)
         val editMenu = menu!!.findItem(editMenuItem)
-        deleteMenuItem = menu!!.findItem(R.id.deleteMenuItem)
-        for(menuItem in 0..menu!!.size() - 1){
-            val currMenu = menu.getItem(menuItem)
-            menuItems.add(currMenu)
-            if(currMenu != editMenu)
+        deleteMenu = menu!!.findItem(deleteMenuItem)
+        //val id = intent.getLongExtra("id", -1L)
+        if(id == -1L) {
+            setEditable(true)
+            editMenu.setVisible(false)
+            //왜 여기서 as를 써줘야되는지 이유 찾아보기
+            val tmpDeleteMenuItem = deleteMenu as MenuItem
+            tmpDeleteMenuItem.setVisible(false)
+        }
+        else{
+            setEditable(false)
+            for(menuItem in 0..menu!!.size() - 1){
+                val currMenu = menu.getItem(menuItem)
+                menuItems.add(currMenu)
                 currMenu.setVisible(false)
+            }
+            editMenu.setVisible(true)
+            val tmpDeleteMenuItem = deleteMenu as MenuItem
+            tmpDeleteMenuItem.setVisible(true)
         }
         return true
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = intent.getLongExtra("id", -1L)
+        //val id = intent.getLongExtra("id", -1L)
 
         when(item?.itemId){
             R.id.editMenuItem ->{
@@ -123,9 +149,8 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
                 for(menuItem in 0..menuItems.size - 1){
                     menuItems[menuItem].setVisible(true)
                 }
-
                 if(id == -1L)
-                    deleteMenuItem!!.setVisible(false)
+                    deleteMenu!!.setVisible(false)
                 item.setVisible(false)
             }
             R.id.cameraMenuItem ->{
@@ -155,7 +180,8 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
                 return true
             }
             R.id.deleteMenuItem ->{
-                deleteMemo(id)
+                val deleteDialogFragment = DeleteDialogFragment.getInstance()
+                deleteDialogFragment.show(supportFragmentManager, DeleteDialogFragment.DELETE_DIALOG)
                 return true
             }
         }
@@ -163,7 +189,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        val id = intent.getLongExtra("id", -1L)
+        //val id = intent.getLongExtra("id", -1L)
 
         if(resultCode == RESULT_OK){
             when(requestCode){
@@ -290,7 +316,6 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     private fun updateMemo(id: Long){
         realm.beginTransaction()
         val updateMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        realmImageCnt = updateMemo.images.size
         setMemo(updateMemo)
         realm.commitTransaction()
 
@@ -298,7 +323,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             yesButton { finish() }
         }.show()
     }
-    private fun deleteMemo(id: Long){
+    fun deleteMemo(id: Long){
         realm.beginTransaction()
         val deleteMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
         deleteMemo.deleteFromRealm()
@@ -310,7 +335,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     }
 
     private fun setViewFromRealm(deleteButtonVisible: Boolean){
-        val id = intent.getLongExtra("id", -1L)
+        //val id = intent.getLongExtra("id", -1L)
         if(id == -1L)
             return
         val memo = realm.where<Memo>().equalTo("id", id).findFirst()!!
@@ -363,18 +388,6 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             return maxId.toInt() + 1
         return 0
     }
-    private fun getImageUrlFromUrl(url: String?): JMetaData?{
-        try{
-            val metadata = JMetaData(url, "")
-            val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
-            if(doc.select("meta[property=og:image]").size != 0)
-                metadata.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
-            return metadata
-        }catch (e: Exception){
-            e.printStackTrace()
-            return null
-        }
-    }
     private fun setViewPagerMarginPadding(){
         val dpValue = 54
         val d = resources.displayMetrics.density
@@ -384,13 +397,13 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     }
     private fun setEditable(editable: Boolean){
         if(editable){
-            titleEditText.isFocusableInTouchMode = true
-            bodyEditText.isFocusableInTouchMode = true
+            titleEditText.isEnabled = true
+            bodyEditText.isEnabled = true
             setViewFromRealm(true)
         }
         else{
-            titleEditText.isFocusableInTouchMode = false
-            bodyEditText.isFocusableInTouchMode = false
+            titleEditText.isEnabled = false
+            bodyEditText.isEnabled = false
         }
     }
 

@@ -14,7 +14,7 @@
         android:ems="10"
         android:fontFamily="@font/nanumbarunpenr"
         android:gravity="center"
-        android:hint="@string/input_url"
+        android:hint="@string/dialog_input_url"
         android:inputType="textUri|textMultiLine|text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

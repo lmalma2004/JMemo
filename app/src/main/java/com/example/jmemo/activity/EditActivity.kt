@@ -11,8 +11,10 @@ import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.webkit.URLUtil
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -289,7 +291,9 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
 
     private fun setMemo(memo: Memo){
         memo.title = titleEditText.text.toString()
-        memo.date = calendar.timeInMillis
+        memo.lastDate = calendar.timeInMillis
+        if(memo.initDate == 0L)
+            memo.initDate = memo.lastDate
         memo.body = bodyEditText.text.toString()
         for(image in 0..addedImages.size - 1){
             memo.images.add(addedImages[image])
@@ -341,6 +345,12 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         val memo = realm.where<Memo>().equalTo("id", id).findFirst()!!
         titleEditText.setText(memo.title)
         bodyEditText.setText(memo.body)
+        if(id != -1L){
+            lastDateTextView.setText(DateFormat.format("마지막 수정: yyyy년 MM월 dd일", memo.lastDate))
+            initDateTextView.setText(DateFormat.format("만든 날짜: yyyy년 MM월 dd일", memo.initDate))
+            lastDateTextView.visibility = View.VISIBLE
+            initDateTextView.visibility = View.VISIBLE
+        }
         setImageFromRealm(id, deleteButtonVisible)
     }
     private fun setImageFromRealm(id: Long, deleteButtonVisible: Boolean){

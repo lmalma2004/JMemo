@@ -62,13 +62,36 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginBottom="2dp"
             android:clipToPadding="false"
+            app:layout_constraintBottom_toTopOf="@+id/lastDateTextView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.78"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/bodyEditText">
+            app:layout_constraintTop_toBottomOf="@+id/bodyEditText"></androidx.viewpager.widget.ViewPager>
 
-        </androidx.viewpager.widget.ViewPager>
+        <TextView
+            android:id="@+id/lastDateTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="마지막 수정:2020년 2월 22일"
+            android:fontFamily="@font/nanumbarunpenr"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/viewPager"
+            app:layout_constraintEnd_toEndOf="@+id/viewPager"
+            app:layout_constraintTop_toBottomOf="@+id/viewPager" />
+
+        <TextView
+            android:id="@+id/initDateTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="만든날짜:2020년 2월 21일"
+            android:fontFamily="@font/nanumbarunpenr"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/viewPager"
+            app:layout_constraintTop_toBottomOf="@id/lastDateTextView" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>

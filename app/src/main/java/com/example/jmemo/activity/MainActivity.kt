@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
     fun setViewFromRealm(){
-        val realmResult = realm.where<Memo>().findAll().sort("date", Sort.DESCENDING)
+        val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
         val adapter = MemoGridAdapter(realmResult)
         memoListGridView.adapter = adapter
         realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }

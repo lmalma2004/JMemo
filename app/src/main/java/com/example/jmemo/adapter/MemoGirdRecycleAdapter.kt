@@ -31,7 +31,7 @@ class MemoGridRecycleAdapter(realmResult: OrderedRealmCollection<Memo>)
         if(adapterData != null){
             val memo = adapterData!![position]
             vh.titleTextView.text = memo.title
-            vh.dateTextView.text = DateFormat.format("yyyy년 MM월 dd일", memo.date)
+            vh.dateTextView.text = DateFormat.format("yyyy년 MM월 dd일", memo.lastDate)
             vh.bodyTextView.text = memo.body
             if(vh.bodyTextView.lineCount > 4){
 

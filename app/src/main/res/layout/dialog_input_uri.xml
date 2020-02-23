@@ -11,8 +11,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:ems="10"
-        android:hint="URL을 입력 하세요"
-        android:inputType="textPersonName"
+        android:fontFamily="@font/nanumbarunpenr"
+        android:gravity="center"
+        android:hint="@string/dialog_input_url"
+        android:importantForAutofill="no"
+        android:inputType="textUri|textMultiLine|text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -23,7 +26,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="OK"
+        android:fontFamily="@font/nanumnarunpenb"
+        android:text="@android:string/ok"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/urlEditText" />
 
@@ -33,7 +37,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:text="CANCEL"
+        android:fontFamily="@font/nanumnarunpenb"
+        android:text="@string/cancel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/urlEditText" />
 </androidx.constraintlayout.widget.ConstraintLayout>

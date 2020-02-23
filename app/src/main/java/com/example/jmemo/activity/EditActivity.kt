@@ -11,8 +11,10 @@ import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.webkit.URLUtil
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -20,14 +22,17 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import com.example.jmemo.*
 import com.example.jmemo.R.id.deleteMenuItem
+import com.example.jmemo.R.id.editMenuItem
 import com.example.jmemo.database.Memo
 import com.example.jmemo.fragment.PhotoFragment
-import com.example.jmemo.fragment.PhotoFragmentPagerAdapter
+import com.example.jmemo.adapter.PhotoFragmentPagerAdapter
+import com.example.jmemo.fragment.DeleteDialogFragment
 import com.example.jmemo.fragment.UrlDialogFragment
 import io.realm.Realm
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_edit.*
+import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.toast
 import org.jetbrains.anko.yesButton
@@ -39,14 +44,20 @@ import java.util.*
 
 class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, AppCompatActivity() {
 
-    private val realm = Realm.getDefaultInstance()
-    private val calendar: Calendar = Calendar.getInstance()
     private val REQUEST_IMAGE_CAPTURE = 2
     private val REQUEST_IMAGE_GALLERY = 1
+    private val realm = Realm.getDefaultInstance()
+    private val calendar: Calendar = Calendar.getInstance()
     private val addedImages: ArrayList<String> = arrayListOf()
     private val deleteImages: ArrayList<String> = arrayListOf()
-    private var realmImageCnt = 0
+    private val menuItems: ArrayList<MenuItem> = arrayListOf()
+    private var deleteMenu: MenuItem? = null
+    var id: Long = -1L //PrimaryKey
 
+    inner class JMetaData(url: String?, imageUrl: String?) {
+        var url = url
+        var imageUrl = imageUrl
+    }
     inner class JMetadataTask :AsyncTask<String, JMetaData, JMetaData>(){
         var url: String = ""
         override fun doInBackground(vararg params: String?): JMetaData? {
@@ -56,7 +67,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         override fun onPostExecute(result: JMetaData?) {
             super.onPostExecute(result)
             if(result == null) {
-                toast("URL 정보를 가져올 수 없습니다. 인터넷 연결을 확인하세요")
+                toast("URL 정보를 가져올 수 없어요. 인터넷 연결을 확인해주세요.")
                 return
             }
             val preSize = addedImages.size
@@ -68,16 +79,26 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             if(preSize < currSize)
                 setImageFromAddedImages(currSize - 1)
         }
-    }
-    inner class JMetaData(url: String?, imageUrl: String?) {
-        var url = url
-        var imageUrl = imageUrl
+        private fun getImageUrlFromUrl(url: String?): JMetaData?{
+            try{
+                val metadata = JMetaData(url, "")
+                val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
+                if(doc.select("meta[property=og:image]").size != 0)
+                    metadata.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
+                return metadata
+            }catch (e: Exception){
+                e.printStackTrace()
+                return null
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        id = intent.getLongExtra("id", -1L)
         setContentView(R.layout.activity_edit)
-        setViewFromRealm()
+        setSupportActionBar(toolbar2)
+        setViewFromRealm(false)
         setViewPagerMarginPadding()
     }
     override fun onDestroy() {
@@ -93,62 +114,79 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         when(requestCode){
             REQUEST_IMAGE_GALLERY->{
                 if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED)
-                    toast("권한 거부 됨")
-                return
+                    toast("권한이 거부 되었어요.")
+            }
+            REQUEST_IMAGE_CAPTURE->{
+                if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED)
+                    toast("권한이 거부 되었어요.")
             }
         }
     }
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_edit, menu)
-        val deleteMemoItem = menu!!.findItem(deleteMenuItem)
-        val id = intent.getLongExtra("id", -1L)
-        if(id == -1L)
-            deleteMemoItem.setVisible(false)
-        else
-            deleteMemoItem.setVisible(true)
+        val editMenu = menu!!.findItem(editMenuItem)
+        deleteMenu = menu!!.findItem(deleteMenuItem)
+        if(id == -1L) {
+            setEditable(true)
+            editMenu.setVisible(false)
+            val tmpDeleteMenuItem = deleteMenu as MenuItem
+            tmpDeleteMenuItem.setVisible(false)
+        }
+        else{
+            setEditable(false)
+            for(menuItem in 0..menu!!.size() - 1){
+                val currMenu = menu.getItem(menuItem)
+                menuItems.add(currMenu)
+                currMenu.setVisible(false)
+            }
+            editMenu.setVisible(true)
+            val tmpDeleteMenuItem = deleteMenu as MenuItem
+            tmpDeleteMenuItem.setVisible(true)
+        }
         return true
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = intent.getLongExtra("id", -1L)
-
         when(item?.itemId){
+            R.id.editMenuItem ->{
+                setEditable(true)
+                for(menuItem in 0..menuItems.size - 1){
+                    menuItems[menuItem].setVisible(true)
+                }
+                if(id == -1L)
+                    deleteMenu!!.setVisible(false)
+                item.setVisible(false)
+            }
             R.id.cameraMenuItem ->{
                 if(!isPermissionCAMERA())
                     permissionCAMERA()
                 else
                     sendTakePhotoIntent()
-                return true
             }
             R.id.albumMenuItem ->{
                 if(!isPermissionGALLERY())
                     permissionGALLERY()
                 else
                     sendGalleyPhotoIntent()
-                return true
             }
             R.id.urlMenuItem ->{
                 val uriDialogFragment = UrlDialogFragment.getInstance()
                 uriDialogFragment.show(supportFragmentManager, UrlDialogFragment.INPUT_URL_FROM_DIALOG)
-                return true
             }
             R.id.saveMenuItem ->{
                 if(id == -1L)
                     insertMemo()
                 else
                     updateMemo(id)
-                return true
             }
             R.id.deleteMenuItem ->{
-                deleteMemo(id)
-                return true
+                val deleteDialogFragment = DeleteDialogFragment.getInstance()
+                deleteDialogFragment.show(supportFragmentManager, DeleteDialogFragment.DELETE_DIALOG)
             }
         }
         return super.onOptionsItemSelected(item)
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        val id = intent.getLongExtra("id", -1L)
-
         if(resultCode == RESULT_OK){
             when(requestCode){
                 REQUEST_IMAGE_GALLERY ->{
@@ -179,9 +217,8 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         }
     }
     override fun onUriDialogFragmentInteraction(image: String) {
-        //url 잘못된경우 처리
         if(!URLUtil.isValidUrl(image)){
-            alert("유효하지 않은 URL 입니다."){
+            alert("유효하지 않은 URL 이에요."){
                 yesButton {}
             }.show()
             return
@@ -230,7 +267,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             return
         addedImages.add(image)
 
-        alert(image + "의 URL이 추가되었습니다."){
+        alert(image + "의 사진이 추가되었어요."){
             yesButton {}
         }.show()
     }
@@ -240,14 +277,16 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         adapter.updateFragments()
         viewPager.adapter = adapter
 
-        alert("사진이 삭제되었습니다."){
+        alert("사진이 삭제되었어요."){
             yesButton { }
         }.show()
     }
 
     private fun setMemo(memo: Memo){
         memo.title = titleEditText.text.toString()
-        memo.date = calendar.timeInMillis
+        memo.lastDate = calendar.timeInMillis
+        if(memo.initDate == 0L)
+            memo.initDate = memo.lastDate
         memo.body = bodyEditText.text.toString()
         for(image in 0..addedImages.size - 1){
             memo.images.add(addedImages[image])
@@ -262,53 +301,65 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         }
     }
     private fun insertMemo(){
+        if(titleEditText.text.toString() == "" &&
+                bodyEditText.text.toString() == "" &&
+                addedImages.size == 0 &&
+                deleteImages.size ==0){
+            toast("입력한 내용이 없어 메모를 저장하지 않았어요.")
+            finish()
+            return
+        }
         realm.beginTransaction()
         val newMemo = realm.createObject<Memo>(nextId())
         setMemo(newMemo)
         realm.commitTransaction()
 
-        alert("메모가 추가되었습니다."){
+        alert("메모가 추가되었어요."){
             yesButton { finish() }
-        }.show()
+        }.show().setCancelable(false)
     }
     private fun updateMemo(id: Long){
         realm.beginTransaction()
         val updateMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        realmImageCnt = updateMemo.images.size
         setMemo(updateMemo)
         realm.commitTransaction()
 
-        alert("메모가 변경되었습니다"){
+        alert("메모가 변경되었어요."){
             yesButton { finish() }
-        }.show()
+        }.show().setCancelable(false)
     }
-    private fun deleteMemo(id: Long){
+    fun deleteMemo(id: Long){
         realm.beginTransaction()
         val deleteMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
         deleteMemo.deleteFromRealm()
         realm.commitTransaction()
 
-        alert("메모가 삭제되었습니다."){
-            yesButton { finish () }
-        }.show()
+        alert("메모가 삭제되었어요."){
+            yesButton { finish() }
+        }.show().setCancelable(false)
     }
 
-    private fun setViewFromRealm(){
-        val id = intent.getLongExtra("id", -1L)
+    private fun setViewFromRealm(deleteButtonVisible: Boolean){
         if(id == -1L)
             return
         val memo = realm.where<Memo>().equalTo("id", id).findFirst()!!
         titleEditText.setText(memo.title)
         bodyEditText.setText(memo.body)
-        setImageFromRealm(id)
+        if(id != -1L){
+            lastDateTextView.setText(DateFormat.format("마지막 수정: yyyy년 MM월 dd일", memo.lastDate))
+            initDateTextView.setText(DateFormat.format("만든 날짜: yyyy년 MM월 dd일", memo.initDate))
+            lastDateTextView.visibility = View.VISIBLE
+            initDateTextView.visibility = View.VISIBLE
+        }
+        setImageFromRealm(id, deleteButtonVisible)
     }
-    private fun setImageFromRealm(id: Long){
+    private fun setImageFromRealm(id: Long, deleteButtonVisible: Boolean){
         val currMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
         val images = currMemo.images
         val fragments = ArrayList<Fragment>()
         if(images.size != 0){
             for(image in 0..images.size - 1){
-                fragments.add(PhotoFragment.newInstance(images[image]!!, id))
+                fragments.add(PhotoFragment.newInstance(images[image]!!, id, deleteButtonVisible))
             }
         }
         val adapter = PhotoFragmentPagerAdapter(
@@ -322,7 +373,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         val fragments = ArrayList<Fragment>()
         if(addedImages.size != 0){
             fragments.add(
-                PhotoFragment.newInstance(addedImages[image], image-1L)
+                PhotoFragment.newInstance(addedImages[image], image-1L, true)
             )
         }
         //이미 사진들이 있는 경우
@@ -347,24 +398,23 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             return maxId.toInt() + 1
         return 0
     }
-    private fun getImageUrlFromUrl(url: String?): JMetaData?{
-        try{
-            val metadata = JMetaData(url, "")
-            val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
-            if(doc.select("meta[property=og:image]").size != 0)
-                metadata.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
-            return metadata
-        }catch (e: Exception){
-            e.printStackTrace()
-            return null
-        }
-    }
     private fun setViewPagerMarginPadding(){
         val dpValue = 54
         val d = resources.displayMetrics.density
         val margin = dpValue * d
         viewPager.setPadding(margin.toInt(), 0, margin.toInt(), 0)
         viewPager.pageMargin = margin.toInt() / 2
+    }
+    private fun setEditable(editable: Boolean){
+        if(editable){
+            titleEditText.isEnabled = true
+            bodyEditText.isEnabled = true
+            setViewFromRealm(true)
+        }
+        else{
+            titleEditText.isEnabled = false
+            bodyEditText.isEnabled = false
+        }
     }
 
 }

@@ -13,15 +13,12 @@ class PhotoFragmentPagerAdapter(fm: FragmentManager, behavior: Int) : FragmentSt
     override fun getItem(position: Int): Fragment {
         return imageItems[position]
     }
-
     override fun getCount(): Int {
         return imageItems.size
     }
-
     fun insertFragments(imageItems: List<Fragment>){
         this.imageItems.addAll(imageItems)
     }
-
     fun updateFragments(){
         //imageItems.removeIf { t: Fragment -> compareFragment(t) }
         val itemSize = imageItems.size

@@ -18,11 +18,20 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import org.jetbrains.anko.startActivity
 
+/*
+* 라이브러리 출처
+* 1. Anko [출처 : https://github.com/Kotlin/anko]
+* 2. Glide [출처 : https://github.com/bumptech/glide]
+* 3. jsoup [출처 : https://github.com/jhy/jsoup/]
+* 4. Realm [출처 : https://github.com/realm]
+*
+* */
+
 class MainActivity : AppCompatActivity() {
     private val realm = Realm.getDefaultInstance()
-    private val GRIDTYPE = true
-    private val LINEARTYPE = false
-    private var currLayout = GRIDTYPE
+    private val STAGGERGRIDTYPE = 0
+    private val LINEARTYPE      = 1
+    private var currLayout = STAGGERGRIDTYPE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +44,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         setView()
     }
-
     override fun onRestart() {
         super.onRestart()
         setView()
@@ -50,9 +58,9 @@ class MainActivity : AppCompatActivity() {
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.show_grid ->{
-                setViewGridFromRealm()
-                currLayout = GRIDTYPE
+            R.id.show_staggergrid ->{
+                setViewsStaggeredGridFromRealm()
+                currLayout = STAGGERGRIDTYPE
             }
             R.id.show_linear->{
                 setViewLinearFromRealm()
@@ -63,28 +71,31 @@ class MainActivity : AppCompatActivity() {
     }
     fun setView(){
         when(currLayout){
-            GRIDTYPE-> setViewGridFromRealm()
-            LINEARTYPE-> setViewLinearFromRealm()
+            STAGGERGRIDTYPE-> {
+                setViewsStaggeredGridFromRealm()
+            }
+            LINEARTYPE-> {
+                setViewLinearFromRealm()
+            }
         }
     }
-    fun setViewGridFromRealm(){
-        val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
-        memoListRecyclerView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-        val adapter = MemoGridRecycleAdapter(realmResult, this)
-        memoListRecyclerView.adapter = adapter
-        realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
-    }
+    fun setViewsStaggeredGridFromRealm(){
+       val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
+       memoListRecyclerView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+       val adapter = MemoGridRecycleAdapter(realmResult, this)
+       realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
+       memoListRecyclerView.adapter = adapter
+   }
     fun setViewLinearFromRealm(){
-        val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
-        memoListRecyclerView.layoutManager = LinearLayoutManager(this)
-        val adapter = MemoLinearRecycleAdapter(realmResult, this)
-        memoListRecyclerView.adapter = adapter
-        realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
-    }
+       val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
+       memoListRecyclerView.layoutManager = LinearLayoutManager(this)
+       val adapter = MemoLinearRecycleAdapter(realmResult, this)
+       realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
+       memoListRecyclerView.adapter = adapter
+
+   }
     fun setEventFab(){
         addMemoFab.setOnClickListener {
-            //Anko 라이브러리
-            //출처 : https://github.com/Kotlin/anko
             startActivity<EditActivity>()
         }
     }

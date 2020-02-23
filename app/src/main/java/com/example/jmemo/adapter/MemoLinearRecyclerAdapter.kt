@@ -26,7 +26,6 @@ class MemoLinearRecycleAdapter(realmResult: OrderedRealmCollection<Memo>, contex
     var view : View? = null
     var context : Context? = null
     init {
-        setHasStableIds(true)
         this.context = context
     }
     override fun getItem(index: Int): Memo? {
@@ -39,8 +38,6 @@ class MemoLinearRecycleAdapter(realmResult: OrderedRealmCollection<Memo>, contex
     }
 
     override fun onBindViewHolder(holder: ViewHolderOfLinearRecycleView, position: Int) {
-        if(view == null)
-            return
         val memo = getItem(position)
         holder.titleTextView.text = memo!!.title
         holder.dateTextView.text = DateFormat.format("yyyy년 MM월 dd일", memo.lastDate)
@@ -48,7 +45,7 @@ class MemoLinearRecycleAdapter(realmResult: OrderedRealmCollection<Memo>, contex
         if(memo.images.size != 0){
             holder.realmImageView.visibility = View.VISIBLE
             val multiOption = MultiTransformation(CenterCrop(), RoundedCorners(30))
-            Glide.with(view!!).load(memo.images.first())
+            Glide.with(holder.realView!!).load(memo.images.first())
                 .placeholder(R.drawable.ic_sync_black_24dp)
                 .error(R.drawable.ic_error)
                 .apply(RequestOptions.bitmapTransform(multiOption))
@@ -58,15 +55,16 @@ class MemoLinearRecycleAdapter(realmResult: OrderedRealmCollection<Memo>, contex
         else{
             holder.realmImageView.visibility = View.GONE
         }
-        view!!.setOnClickListener {
+        holder.realView!!.setOnClickListener {
             context!!.startActivity<EditActivity>("id" to memo.id)
         }
     }
 
-    inner class ViewHolderOfLinearRecycleView(view: View): RecyclerView.ViewHolder(view){
+    class ViewHolderOfLinearRecycleView(view: View): RecyclerView.ViewHolder(view){
         val titleTextView: TextView = view.findViewById(R.id.titleTextView)
         val dateTextView: TextView = view.findViewById(R.id.dateTextView)
         val bodyTextView: TextView = view.findViewById(R.id.bodyTextView)
-        val realmImageView: ImageView = view.findViewById(R.id.realmImageView)
+        val realmImageView: ImageView = view.findViewById(R.id.mainImageView)
+        val realView = view
     }
 }

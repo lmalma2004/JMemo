@@ -11,8 +11,8 @@
         <menu>
             <group>
                 <item
-                    android:id="@+id/show_grid"
-                    android:title="@string/grid_type" />
+                    android:id="@+id/show_staggergrid"
+                    android:title="@string/stagger_grid_type" />
                 <item
                     android:id="@+id/show_linear"
                     android:title="@string/linear_type"/>

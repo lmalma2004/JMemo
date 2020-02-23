@@ -21,7 +21,7 @@
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/dateTextView"
-        app:layout_constraintEnd_toStartOf="@id/realmImageView"
+        app:layout_constraintEnd_toStartOf="@id/mainImageView"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -41,7 +41,7 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="@android:color/black"
         app:layout_constraintBottom_toTopOf="@+id/dateTextView"
-        app:layout_constraintEnd_toStartOf="@id/realmImageView"
+        app:layout_constraintEnd_toStartOf="@id/mainImageView"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titleTextView"
@@ -60,13 +60,13 @@
         android:textSize="12sp"
         android:textStyle="italic"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/realmImageView"
+        app:layout_constraintEnd_toStartOf="@id/mainImageView"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="2020-02-24" />
 
     <ImageView
-        android:id="@+id/realmImageView"
+        android:id="@+id/mainImageView"
         android:layout_width="150dp"
         android:layout_height="0dp"
         android:background="@drawable/border_layout"

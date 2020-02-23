@@ -44,15 +44,15 @@ import java.util.*
 
 class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, AppCompatActivity() {
 
-    private val realm = Realm.getDefaultInstance()
-    private val calendar: Calendar = Calendar.getInstance()
     private val REQUEST_IMAGE_CAPTURE = 2
     private val REQUEST_IMAGE_GALLERY = 1
+    private val realm = Realm.getDefaultInstance()
+    private val calendar: Calendar = Calendar.getInstance()
     private val addedImages: ArrayList<String> = arrayListOf()
     private val deleteImages: ArrayList<String> = arrayListOf()
     private val menuItems: ArrayList<MenuItem> = arrayListOf()
     private var deleteMenu: MenuItem? = null
-    var id: Long = -1L
+    var id: Long = -1L //PrimaryKey
 
     inner class JMetaData(url: String?, imageUrl: String?) {
         var url = url
@@ -67,7 +67,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         override fun onPostExecute(result: JMetaData?) {
             super.onPostExecute(result)
             if(result == null) {
-                toast("URL 정보를 가져올 수 없습니다. 인터넷 연결을 확인하세요")
+                toast("URL 정보를 가져올 수 없어요. 인터넷 연결을 확인해주세요.")
                 return
             }
             val preSize = addedImages.size
@@ -114,8 +114,11 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         when(requestCode){
             REQUEST_IMAGE_GALLERY->{
                 if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED)
-                    toast("권한 거부 됨")
-                return
+                    toast("권한이 거부 되었어요.")
+            }
+            REQUEST_IMAGE_CAPTURE->{
+                if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED)
+                    toast("권한이 거부 되었어요.")
             }
         }
     }
@@ -126,7 +129,6 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         if(id == -1L) {
             setEditable(true)
             editMenu.setVisible(false)
-            //왜 여기서 as를 써줘야되는지 이유 찾아보기
             val tmpDeleteMenuItem = deleteMenu as MenuItem
             tmpDeleteMenuItem.setVisible(false)
         }
@@ -144,7 +146,6 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         return true
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
         when(item?.itemId){
             R.id.editMenuItem ->{
                 setEditable(true)
@@ -186,7 +187,6 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if(resultCode == RESULT_OK){
             when(requestCode){
                 REQUEST_IMAGE_GALLERY ->{
@@ -217,9 +217,8 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         }
     }
     override fun onUriDialogFragmentInteraction(image: String) {
-        //url 잘못된경우 처리
         if(!URLUtil.isValidUrl(image)){
-            alert("유효하지 않은 URL 입니다."){
+            alert("유효하지 않은 URL 이에요."){
                 yesButton {}
             }.show()
             return
@@ -268,7 +267,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             return
         addedImages.add(image)
 
-        alert(image + "의 사진이 추가되었습니다."){
+        alert(image + "의 사진이 추가되었어요."){
             yesButton {}
         }.show()
     }
@@ -278,7 +277,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         adapter.updateFragments()
         viewPager.adapter = adapter
 
-        alert("사진이 삭제되었습니다."){
+        alert("사진이 삭제되었어요."){
             yesButton { }
         }.show()
     }
@@ -302,14 +301,22 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         }
     }
     private fun insertMemo(){
+        if(titleEditText.text.toString() == "" &&
+                bodyEditText.text.toString() == "" &&
+                addedImages.size == 0 &&
+                deleteImages.size ==0){
+            toast("입력한 내용이 없어 메모를 저장하지 않았어요.")
+            finish()
+            return
+        }
         realm.beginTransaction()
         val newMemo = realm.createObject<Memo>(nextId())
         setMemo(newMemo)
         realm.commitTransaction()
 
-        alert("메모가 추가되었습니다."){
+        alert("메모가 추가되었어요."){
             yesButton { finish() }
-        }.show()
+        }.show().setCancelable(false)
     }
     private fun updateMemo(id: Long){
         realm.beginTransaction()
@@ -317,9 +324,9 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         setMemo(updateMemo)
         realm.commitTransaction()
 
-        alert("메모가 변경되었습니다"){
+        alert("메모가 변경되었어요."){
             yesButton { finish() }
-        }.show()
+        }.show().setCancelable(false)
     }
     fun deleteMemo(id: Long){
         realm.beginTransaction()
@@ -327,9 +334,9 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         deleteMemo.deleteFromRealm()
         realm.commitTransaction()
 
-        alert("메모가 삭제되었습니다."){
-            yesButton { finish () }
-        }.show()
+        alert("메모가 삭제되었어요."){
+            yesButton { finish() }
+        }.show().setCancelable(false)
     }
 
     private fun setViewFromRealm(deleteButtonVisible: Boolean){

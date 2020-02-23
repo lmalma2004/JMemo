@@ -43,7 +43,7 @@ class PhotoFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         Glide.with(this).load(image)
             .placeholder(R.drawable.ic_sync_black_24dp)
-            .error(R.drawable.ic_error).into(imageView)
+            .error(R.drawable.ic_error).into(editImageView)
 
         if(deleteButtonVisible != null && !deleteButtonVisible!!) {
             imageDeleteButton.visibility = View.GONE

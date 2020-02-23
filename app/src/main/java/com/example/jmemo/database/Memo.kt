@@ -10,6 +10,6 @@ open class Memo(
     var lastDate: Long = 0,
     var initDate: Long = 0,
     var body: String = "",
-    var images: RealmList<String> = RealmList<String>()
+    var images: RealmList<String> = RealmList<String>() //image는 경로 또는 URL
 ) : RealmObject(){
 }

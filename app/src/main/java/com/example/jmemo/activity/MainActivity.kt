@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.jmemo.database.Memo
 import com.example.jmemo.R
-import com.example.jmemo.adapter.MemoGridRecycleAdapter
+import com.example.jmemo.adapter.MemoGridRecyclerAdapter
 import com.example.jmemo.adapter.MemoLinearRecycleAdapter
 import io.realm.Realm
 import io.realm.Sort
@@ -26,7 +26,6 @@ import org.jetbrains.anko.startActivity
 * 4. Realm [출처 : https://github.com/realm]
 *
 * */
-
 class MainActivity : AppCompatActivity() {
     private val realm = Realm.getDefaultInstance()
     private val STAGGERGRIDTYPE = 0
@@ -59,7 +58,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.show_staggergrid ->{
-                setViewsStaggeredGridFromRealm()
+                setViewStaggeredGridFromRealm()
                 currLayout = STAGGERGRIDTYPE
             }
             R.id.show_linear->{
@@ -72,27 +71,34 @@ class MainActivity : AppCompatActivity() {
     fun setView(){
         when(currLayout){
             STAGGERGRIDTYPE-> {
-                setViewsStaggeredGridFromRealm()
+                setViewStaggeredGridFromRealm()
             }
             LINEARTYPE-> {
                 setViewLinearFromRealm()
             }
         }
     }
-    fun setViewsStaggeredGridFromRealm(){
-       val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
-       memoListRecyclerView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-       val adapter = MemoGridRecycleAdapter(realmResult, this)
-       realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
-       memoListRecyclerView.adapter = adapter
+    fun setViewStaggeredGridFromRealm(){
+        val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
+        memoListRecyclerView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        val adapter = MemoGridRecyclerAdapter(realmResult, this)
+        memoListRecyclerView.adapter = adapter
+        realmResult.addChangeListener { _->
+            val adapter = memoListRecyclerView.adapter
+            adapter!!.notifyDataSetChanged()
+        }
+        //realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
    }
     fun setViewLinearFromRealm(){
-       val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
-       memoListRecyclerView.layoutManager = LinearLayoutManager(this)
-       val adapter = MemoLinearRecycleAdapter(realmResult, this)
-       realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
-       memoListRecyclerView.adapter = adapter
-
+        val realmResult = realm.where<Memo>().findAll().sort("lastDate", Sort.DESCENDING)
+        memoListRecyclerView.layoutManager = LinearLayoutManager(this)
+        val adapter = MemoLinearRecycleAdapter(realmResult, this)
+        memoListRecyclerView.adapter = adapter
+        realmResult.addChangeListener { _->
+            val adapter = memoListRecyclerView.adapter
+            adapter!!.notifyDataSetChanged()
+        }
+        //realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
    }
     fun setEventFab(){
         addMemoFab.setOnClickListener {

@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +17,7 @@ import android.view.View
 import android.webkit.URLUtil
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import com.example.jmemo.*
@@ -32,13 +32,14 @@ import io.realm.Realm
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_edit.*
-import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.toast
 import org.jetbrains.anko.yesButton
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.lang.Exception
 import java.util.*
 
@@ -52,6 +53,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     private val deleteImages: ArrayList<String> = arrayListOf()
     private val menuItems: ArrayList<MenuItem> = arrayListOf()
     private var deleteMenu: MenuItem? = null
+    private var captureImagePath: String? = null
     var id: Long = -1L //PrimaryKey
 
     inner class JMetaData(url: String?, imageUrl: String?) {
@@ -199,19 +201,17 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
                     return
                 }
                 REQUEST_IMAGE_CAPTURE ->{
-                    try {
-                        val imageOfBitmap: Bitmap = data!!.extras!!.get("data") as Bitmap
-                        val filePath: File = ContextWrapper(applicationContext).getDir(
-                            "Images",
-                            Context.MODE_PRIVATE
-                        )
-                        val name = System.currentTimeMillis().toString() + ".jpg"
-                        saveBitmapToJpeg(imageOfBitmap, filePath, name)
-                        addImage(filePath.absolutePath + "/" + name)
-                        setImageFromAddedImages(addedImages.size - 1)
-                    } catch(e: Exception){
+                    val file = File(captureImagePath)
+                    var image: Uri? = null
+                    try{
+                        image = Uri.fromFile(file)
+                    } catch (e: FileNotFoundException){
+                        e.printStackTrace()
+                    } catch (e: IOException){
                         e.printStackTrace()
                     }
+                    addImage(image.toString())
+                    setImageFromAddedImages(addedImages.size - 1)
                 }
             }
         }
@@ -229,9 +229,19 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     }
 
     private fun sendTakePhotoIntent(){
+        val name = System.currentTimeMillis().toString() + ".jpg"
+        val filePath: File = ContextWrapper(applicationContext).getDir(
+            "Images",
+            Context.MODE_PRIVATE
+        )
+        captureImagePath = filePath.absolutePath + name
+
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if(takePictureIntent.resolveActivity(packageManager) != null)
+        val uri = FileProvider.getUriForFile(this, "com.example.jmemo.fileprovider", File(captureImagePath))
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
+        if(takePictureIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+        }
     }
     private fun sendGalleyPhotoIntent(){
         val uri: Uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI

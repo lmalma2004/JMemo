@@ -21,52 +21,52 @@ import io.realm.RealmRecyclerViewAdapter
 import org.jetbrains.anko.startActivity
 
 
-class MemoGridRecycleAdapter(realmResult: OrderedRealmCollection<Memo>, context: Context)
-    : RealmRecyclerViewAdapter<Memo, MemoGridRecycleAdapter.ViewHolderOfGridRecycleView>(realmResult, false){
-    var view : View? = null
+class MemoGridRecyclerAdapter(realmResult: OrderedRealmCollection<Memo>, context: Context)
+    : RealmRecyclerViewAdapter<Memo, MemoGridRecyclerAdapter.ViewHolderOfGridRecycleView>(realmResult, false){
     var context : Context? = null
-    var realmResults : OrderedRealmCollection<Memo>? = null
+    var realmResult : OrderedRealmCollection<Memo>? = null
     init {
         this.context = context
-        realmResults = realmResult
+        this.realmResult = realmResult
     }
     override fun getItem(index: Int): Memo? {
         return super.getItem(index)
     }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolderOfGridRecycleView {
-        val currView = LayoutInflater.from(parent?.context).inflate(R.layout.item_memo_stagger_grid, parent, false)
-        view = currView
-        return ViewHolderOfGridRecycleView(currView!!)
-    }
 
+    //아이템 뷰를 위한 뷰홀더 객체 생성하여 리턴
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolderOfGridRecycleView {
+        val view = LayoutInflater.from(parent?.context).inflate(R.layout.item_memo_stagger_grid, parent, false)
+        return ViewHolderOfGridRecycleView(view!!)
+    }
+    //position에 해당하는 데이터를 뷰홀더의 아이템뷰에 표시
     override fun onBindViewHolder(holder: ViewHolderOfGridRecycleView, position: Int) {
-        val memo = realmResults?.get(position)
+        val memo = realmResult?.get(position)
         holder.titleTextView.text = memo!!.title
         holder.dateTextView.text = DateFormat.format("yyyy년 MM월 dd일", memo.lastDate)
         holder.bodyTextView.text = memo.body
         if(memo.images.size != 0){
-            holder.realmImageView.visibility = View.VISIBLE
+            holder.imageView.visibility = View.VISIBLE
             val multiOption = MultiTransformation(CenterCrop(), RoundedCorners(30))
-            Glide.with(holder.realView!!).load(memo.images.first())
+            Glide.with(holder.view!!).load(memo.images.first())
                 .placeholder(R.drawable.ic_sync_black_24dp)
                 .error(R.drawable.ic_error)
                 .apply(RequestOptions.bitmapTransform(multiOption))
-                .into(holder.realmImageView)
-            holder.realmImageView.background = holder.realView!!.resources.getDrawable(R.drawable.border_layout, null)
+                .into(holder.imageView)
+            holder.imageView.background = holder.view!!.resources.getDrawable(R.drawable.border_layout, null)
         }
         else{
-            holder.realmImageView.visibility = View.GONE
+            holder.imageView.visibility = View.GONE
         }
-        holder.realView!!.setOnClickListener {
+        holder.view!!.setOnClickListener {
             context!!.startActivity<EditActivity>("id" to memo.id)
         }
     }
 
-    class ViewHolderOfGridRecycleView(view: View): RecyclerView.ViewHolder(view){
-        val titleTextView: TextView = view.findViewById(R.id.titleTextView)
-        val dateTextView: TextView = view.findViewById(R.id.dateTextView)
-        val bodyTextView: TextView = view.findViewById(R.id.bodyTextView)
-        val realmImageView: ImageView = view.findViewById(R.id.mainImageView)
-        val realView = view
+    class ViewHolderOfGridRecycleView(itemView: View): RecyclerView.ViewHolder(itemView){
+        val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
+        val dateTextView: TextView = itemView.findViewById(R.id.dateTextView)
+        val bodyTextView: TextView = itemView.findViewById(R.id.bodyTextView)
+        val imageView: ImageView = itemView.findViewById(R.id.mainImageView)
+        val view = itemView
     }
 }

@@ -23,7 +23,6 @@ import org.jetbrains.anko.startActivity
 
 class MemoLinearRecycleAdapter(realmResult: OrderedRealmCollection<Memo>, context: Context)
     : RealmRecyclerViewAdapter<Memo, MemoLinearRecycleAdapter.ViewHolderOfLinearRecycleView>(realmResult, false){
-    var view : View? = null
     var context : Context? = null
     init {
         this.context = context
@@ -32,9 +31,8 @@ class MemoLinearRecycleAdapter(realmResult: OrderedRealmCollection<Memo>, contex
         return super.getItem(index)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolderOfLinearRecycleView {
-        val currView = LayoutInflater.from(parent?.context).inflate(R.layout.item_memo_linear, parent, false)
-        view = currView
-        return ViewHolderOfLinearRecycleView(currView!!)
+        val view = LayoutInflater.from(parent?.context).inflate(R.layout.item_memo_linear, parent, false)
+        return ViewHolderOfLinearRecycleView(view!!)
     }
 
     override fun onBindViewHolder(holder: ViewHolderOfLinearRecycleView, position: Int) {
@@ -43,28 +41,28 @@ class MemoLinearRecycleAdapter(realmResult: OrderedRealmCollection<Memo>, contex
         holder.dateTextView.text = DateFormat.format("yyyy년 MM월 dd일", memo.lastDate)
         holder.bodyTextView.text = memo.body
         if(memo.images.size != 0){
-            holder.realmImageView.visibility = View.VISIBLE
+            holder.imageView.visibility = View.VISIBLE
             val multiOption = MultiTransformation(CenterCrop(), RoundedCorners(30))
-            Glide.with(holder.realView!!).load(memo.images.first())
+            Glide.with(holder.view!!).load(memo.images.first())
                 .placeholder(R.drawable.ic_sync_black_24dp)
                 .error(R.drawable.ic_error)
                 .apply(RequestOptions.bitmapTransform(multiOption))
-                .into(holder.realmImageView)
-            holder.realmImageView.background = view!!.resources.getDrawable(R.drawable.border_layout, null)
+                .into(holder.imageView)
+            holder.imageView.background = holder.view!!.resources.getDrawable(R.drawable.border_layout, null)
         }
         else{
-            holder.realmImageView.visibility = View.GONE
+            holder.imageView.visibility = View.GONE
         }
-        holder.realView!!.setOnClickListener {
+        holder.view!!.setOnClickListener {
             context!!.startActivity<EditActivity>("id" to memo.id)
         }
     }
 
-    class ViewHolderOfLinearRecycleView(view: View): RecyclerView.ViewHolder(view){
-        val titleTextView: TextView = view.findViewById(R.id.titleTextView)
-        val dateTextView: TextView = view.findViewById(R.id.dateTextView)
-        val bodyTextView: TextView = view.findViewById(R.id.bodyTextView)
-        val realmImageView: ImageView = view.findViewById(R.id.mainImageView)
-        val realView = view
+    class ViewHolderOfLinearRecycleView(itemView: View): RecyclerView.ViewHolder(itemView){
+        val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
+        val dateTextView: TextView = itemView.findViewById(R.id.dateTextView)
+        val bodyTextView: TextView = itemView.findViewById(R.id.bodyTextView)
+        val imageView: ImageView = itemView.findViewById(R.id.mainImageView)
+        val view = itemView
     }
 }

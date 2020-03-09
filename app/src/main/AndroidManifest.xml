@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.jmemo">
+    package="com.jmemo.engine">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-feature android:name="android.hardware.camera2"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <uses-feature android:name="android.hardware.camera2" />
 
     <application
         android:name=".database.RealmJMemo"
@@ -16,20 +17,37 @@
         android:roundIcon="@mipmap/app_icon_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".Widget.JMemoAppWidgetSettingActivity">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
+
+        <receiver android:name=".Widget.JMemoAppWidget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/j_memo_app_widget_info" />
+        </receiver>
+
         <provider
-            android:authorities="com.example.jmemo.fileprovider"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="com.jmemo.engine.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths"/>
+                android:resource="@xml/filepaths" />
         </provider>
+
         <activity
             android:name=".activity.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -38,10 +56,9 @@
         </activity>
         <activity
             android:name=".activity.EditActivity"
-            android:screenOrientation="portrait"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

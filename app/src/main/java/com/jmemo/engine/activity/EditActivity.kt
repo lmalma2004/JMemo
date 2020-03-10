@@ -1,6 +1,7 @@
 package com.jmemo.engine.activity
 
 import android.Manifest
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
@@ -23,6 +24,7 @@ import androidx.fragment.app.FragmentPagerAdapter
 import com.jmemo.engine.*
 import com.jmemo.engine.R.id.deleteMenuItem
 import com.jmemo.engine.R.id.editMenuItem
+import com.jmemo.engine.Widget.JMemoAppWidget
 import com.jmemo.engine.database.Memo
 import com.jmemo.engine.fragment.PhotoFragment
 import com.jmemo.engine.adapter.PhotoFragmentPagerAdapter
@@ -337,6 +339,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         alert("메모가 변경되었어요."){
             yesButton { finish() }
         }.show().setCancelable(false)
+        widgetUpdate()
     }
     fun deleteMemo(id: Long){
         realm.beginTransaction()
@@ -347,6 +350,11 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         alert("메모가 삭제되었어요."){
             yesButton { finish() }
         }.show().setCancelable(false)
+    }
+    fun widgetUpdate(){
+        val widgetIntent = Intent(this, JMemoAppWidget::class.java)
+        widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+        this.sendBroadcast(widgetIntent)
     }
 
     private fun setViewFromRealm(deleteButtonVisible: Boolean){

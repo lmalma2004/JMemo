@@ -61,37 +61,15 @@ class MemoGridRecyclerAdapterWidget(realmResult: OrderedRealmCollection<Memo>, c
         else{
             holder.imageView.visibility = View.GONE
         }
+
         holder.view!!.setOnClickListener {
-            val appWidgetManager = AppWidgetManager.getInstance(context)
             val jMemoAppWidgetSettingActivity = context as JMemoAppWidgetSettingActivity
+            val appWidgetManager = AppWidgetManager.getInstance(context)
             val appWidgetId = jMemoAppWidgetSettingActivity.intent?.extras?.getInt(
                 AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID
             ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
-            val views = RemoteViews(context?.packageName, R.layout.j_memo_app_widget)
-            val appWidgetTarget = AppWidgetTarget(context!!.applicationContext, R.id.imageViewOfWidget, views, appWidgetId)
-
-            views.setTextViewText(R.id.titleTextViewOfWidget, memo.title)
-            views.setTextViewText(R.id.bodyTextViewOfWidget, memo.body)
-            views.setTextViewText(R.id.dateTextViewOfWidget, DateFormat.format("yyyy년 MM월 dd일", memo.lastDate))
-            val multiOption = MultiTransformation(CenterCrop(), RoundedCorners(100))
-            Glide.with(context!!.applicationContext)
-                .asBitmap()
-                .load(memo.images.first())
-                .placeholder(R.drawable.ic_sync_black_24dp)
-                .error(R.drawable.ic_error)
-                .override(1500)
-                .apply(RequestOptions.bitmapTransform(multiOption))
-                .into(appWidgetTarget)
-
-            views.also {remoteViews ->
-                appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
-            }
-            val resultValue = Intent().apply {
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            }
-            jMemoAppWidgetSettingActivity.setResult(Activity.RESULT_OK, resultValue)
-            jMemoAppWidgetSettingActivity.finish()
+            updateAppWidget(context!!, appWidgetManager, appWidgetId, memo)
         }
     }
 

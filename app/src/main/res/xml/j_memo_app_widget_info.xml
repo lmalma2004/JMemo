@@ -4,7 +4,7 @@
     android:initialLayout="@layout/j_memo_app_widget"
     android:minWidth="40dp"
     android:minHeight="40dp"
-    android:configure="com.jmemo.engine.Widget.JMemoAppWidgetSettingActivity"
+    android:configure="com.jmemo.engine.widget.JMemoAppWidgetSettingActivity"
     android:previewImage="@drawable/appwidget_preview2"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="86400000"

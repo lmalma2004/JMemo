@@ -24,7 +24,7 @@ import androidx.fragment.app.FragmentPagerAdapter
 import com.jmemo.engine.*
 import com.jmemo.engine.R.id.deleteMenuItem
 import com.jmemo.engine.R.id.editMenuItem
-import com.jmemo.engine.Widget.JMemoAppWidget
+import com.jmemo.engine.widget.JMemoAppWidget
 import com.jmemo.engine.database.Memo
 import com.jmemo.engine.fragment.PhotoFragment
 import com.jmemo.engine.adapter.PhotoFragmentPagerAdapter

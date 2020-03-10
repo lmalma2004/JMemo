@@ -17,13 +17,13 @@
         android:roundIcon="@mipmap/app_icon_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Widget.JMemoAppWidgetSettingActivity">
+        <activity android:name=".widget.JMemoAppWidgetSettingActivity">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>
         </activity>
 
-        <receiver android:name=".Widget.JMemoAppWidget">
+        <receiver android:name=".widget.JMemoAppWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

@@ -10,9 +10,9 @@ import androidx.fragment.app.DialogFragment
 import com.jmemo.engine.R
 import kotlinx.android.synthetic.main.dialog_input_uri.*
 
-class UrlDialogFragment : DialogFragment() {
+class YouTubeDialogFragment : DialogFragment() {
 
-    private var onUriDialogFragmentInteractionListener: OnUriDialogFragmentInteractionListener? = null
+    private var onYouTubeDialogFragmentInteractionListener: OnYouTubeDialogFragmentInteractionListener? = null
 
     companion object{
         val INPUT_URL_FROM_DIALOG = "input_url_dialog"
@@ -26,12 +26,12 @@ class UrlDialogFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val v = inflater.inflate(R.layout.dialog_input_uri, container)
+        val v = inflater.inflate(R.layout.dialog_input_youtube_uri, container)
         val okButton = v.findViewById(R.id.okButton) as Button
         val cancelButton = v.findViewById(R.id.cancelButton) as Button
 
         okButton.setOnClickListener {
-            onUriDialogFragmentInteractionListener!!.onUriDialogFragmentInteraction(urlEditText.text.toString())
+            onYouTubeDialogFragmentInteractionListener!!.onYouTubeDialogFragmentInteraction(urlEditText.text.toString())
             dismiss()
         }
         cancelButton.setOnClickListener {
@@ -41,19 +41,19 @@ class UrlDialogFragment : DialogFragment() {
     }
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is OnUriDialogFragmentInteractionListener) {
-            onUriDialogFragmentInteractionListener = context
+        if (context is OnYouTubeDialogFragmentInteractionListener) {
+            onYouTubeDialogFragmentInteractionListener = context
         } else {
             throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
     }
     override fun onDetach() {
         super.onDetach()
-        onUriDialogFragmentInteractionListener = null
+        onYouTubeDialogFragmentInteractionListener = null
     }
-    interface OnUriDialogFragmentInteractionListener {
+    interface OnYouTubeDialogFragmentInteractionListener {
         // TODO: Update argument type and name
-        fun onUriDialogFragmentInteraction(url: String)
+        fun onYouTubeDialogFragmentInteraction(url: String)
     }
 
 }

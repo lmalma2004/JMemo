@@ -30,6 +30,7 @@ import com.jmemo.engine.fragment.PhotoFragment
 import com.jmemo.engine.adapter.PhotoFragmentPagerAdapter
 import com.jmemo.engine.fragment.DeleteDialogFragment
 import com.jmemo.engine.fragment.UrlDialogFragment
+import com.jmemo.engine.fragment.YouTubeDialogFragment
 import io.realm.Realm
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -218,15 +219,15 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             }
         }
     }
-    override fun onUriDialogFragmentInteraction(image: String) {
-        if(!URLUtil.isValidUrl(image)){
+    override fun onUriDialogFragmentInteraction(url: String) {
+        if(!URLUtil.isValidUrl(url)){
             alert("유효하지 않은 URL 이에요."){
                 yesButton {}
             }.show()
             return
         }
         val jMetaDataTask = JMetadataTask()
-        jMetaDataTask.url = image
+        jMetaDataTask.url = url
         jMetaDataTask.execute()
     }
 

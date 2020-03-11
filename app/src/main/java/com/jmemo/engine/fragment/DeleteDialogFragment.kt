@@ -8,6 +8,8 @@ import android.widget.Button
 import androidx.fragment.app.DialogFragment
 import com.jmemo.engine.R
 import com.jmemo.engine.activity.EditActivity
+import com.jmemo.engine.activity.EditVideoActivity
+import java.lang.ClassCastException
 
 class DeleteDialogFragment : DialogFragment(){
 
@@ -29,9 +31,15 @@ class DeleteDialogFragment : DialogFragment(){
         val cancelButton = v.findViewById(R.id.cancelButton) as Button
 
         okButton.setOnClickListener {
-            val editActivity = activity as EditActivity
-            editActivity.deleteMemo(editActivity.id)
-            dismiss()
+            try {
+                val editActivity = activity as EditActivity
+                editActivity.deleteMemo(editActivity.id)
+                dismiss()
+            } catch (e: ClassCastException){
+                val editVideoActivity = activity as EditVideoActivity
+                editVideoActivity.deleteMemo(editVideoActivity.id)
+                dismiss()
+            }
         }
         cancelButton.setOnClickListener {
             dismiss()

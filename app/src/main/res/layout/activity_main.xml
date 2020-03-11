@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    app:layout_dodgeInsetEdges="all"
     tools:context=".activity.MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -31,15 +32,18 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:tint="@android:color/white"
-        app:srcCompat="@drawable/ic_add_black_24dp" />
+        android:tint="@android:color/primary_text_light"
+        app:backgroundTint="#FFFFFF"
+        app:srcCompat="@drawable/ic_iconmonstr_note_29" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addVideoMemoFab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|start"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@drawable/ic_add_black_24dp" />
+        android:layout_gravity="top|end"
+        android:layout_marginVertical="80dp"
+        app:backgroundTint="#FFFFFF"
+        app:layout_anchor="@id/addMemoFab"
+        app:srcCompat="@drawable/ic_youtube_2" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

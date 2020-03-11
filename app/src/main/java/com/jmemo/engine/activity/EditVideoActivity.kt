@@ -127,10 +127,12 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
         youtubeUrlMenu = menu!!.findItem(R.id.youtubeUrlMenuItem)
         menu!!.findItem(R.id.cameraMenuItem).setVisible(false)
         menu!!.findItem(R.id.albumMenuItem).setVisible(false)
+        menu!!.findItem(R.id.urlMenuItem).setVisible(false)
 
         if(id == -1L) {
             setEditable(true)
             editMenu.setVisible(false)
+            youtubeUrlMenu!!.setVisible(true)
             val tmpDeleteMenuItem = deleteMenu as MenuItem
             tmpDeleteMenuItem.setVisible(false)
         }
@@ -189,8 +191,9 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
     }
 
     private fun setViewFromRealm(deleteButtonVisible: Boolean){
-        if(id == -1L)
+        if(id == -1L) {
             return
+        }
         val memo = realm.where<Memo>().equalTo("id", id).findFirst()!!
         titleVideoEditText.setText(memo.title)
         bodyVideoEditText.setText(memo.body)

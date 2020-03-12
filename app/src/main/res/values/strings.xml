@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">JMemo</string>
+    <string name="app_name">영상 메모</string>
     <string name="action_settings">보기 방식</string>
     <string name="menu_camera">Camera</string>
     <string name="menu_album">Album</string>

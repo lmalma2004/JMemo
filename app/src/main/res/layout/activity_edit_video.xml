@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.EditVideoActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/editVideoConstraint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:isScrollContainer="true"
+        android:scrollbars="vertical">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appbarVideo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbarVideo"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:theme="@style/TextViewStyle"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <EditText
+            android:id="@+id/titleVideoEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="6dp"
+            android:autofillHints=""
+            android:ems="10"
+            android:focusable="true"
+            android:hint="@string/title"
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:textStyle="bold"
+            android:textColor="@drawable/edit_text_color"
+            android:fontFamily="@font/nanumbarunpenr"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/appbarVideo"
+            tools:targetApi="o" />
+
+        <EditText
+            android:id="@+id/bodyVideoEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:autofillHints=""
+            android:ems="10"
+            android:focusable="true"
+            android:hint="@string/body"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine"
+            android:scrollbars="vertical"
+            android:fontFamily="@font/nanumbarunpenr"
+            android:textColor="@drawable/edit_text_color"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/titleVideoEditText"
+            tools:targetApi="o" />
+
+        <kr.co.prnd.YouTubePlayerView
+            android:id="@+id/youtubePlayerView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            android:clipToPadding="false"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.78"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bodyVideoEditText" />
+
+        <TextView
+            android:id="@+id/lastDateVideoTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:fontFamily="@font/nanumbarunpenr"
+            android:visibility="invisible"
+            android:gravity="right"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/youtubePlayerView"
+            tools:text="날짜" />
+
+        <TextView
+            android:id="@+id/initDateVideoTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nanumbarunpenr"
+            android:visibility="invisible"
+            android:gravity="right"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/lastDateVideoTextView"
+            tools:text="날짜" />
+
+        <!--
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:id="@+id/exoPlayerView"
+            android:layout_width="0dp"
+            android:layout_height="360dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="2dp"
+            app:layout_constraintBottom_toTopOf="@+id/lastDateVideoTextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.78"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bodyVideoEditText" />
+        -->
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

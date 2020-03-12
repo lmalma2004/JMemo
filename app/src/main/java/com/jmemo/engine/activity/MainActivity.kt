@@ -104,5 +104,8 @@ class MainActivity : AppCompatActivity() {
         addMemoFab.setOnClickListener {
             startActivity<EditActivity>()
         }
+        addVideoMemoFab.setOnClickListener {
+            startActivity<EditVideoActivity>()
+        }
     }
 }

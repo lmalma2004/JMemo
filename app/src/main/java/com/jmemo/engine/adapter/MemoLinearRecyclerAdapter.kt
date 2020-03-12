@@ -15,6 +15,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.jmemo.engine.R
 import com.jmemo.engine.activity.EditActivity
+import com.jmemo.engine.activity.EditVideoActivity
 import com.jmemo.engine.database.Memo
 import io.realm.OrderedRealmCollection
 import io.realm.RealmRecyclerViewAdapter
@@ -53,8 +54,15 @@ class MemoLinearRecycleAdapter(realmResult: OrderedRealmCollection<Memo>, contex
         else{
             holder.imageView.visibility = View.GONE
         }
-        holder.view!!.setOnClickListener {
-            context!!.startActivity<EditActivity>("id" to memo.id)
+        if(memo.youTubeVideoId != ""){
+            holder.view!!.setOnClickListener {
+                context!!.startActivity<EditVideoActivity>("id" to memo.id)
+            }
+        }
+        else{
+            holder.view!!.setOnClickListener {
+                context!!.startActivity<EditActivity>("id" to memo.id)
+            }
         }
     }
 

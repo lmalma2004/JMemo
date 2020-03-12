@@ -74,9 +74,9 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
         }
         private fun getVideoIdFromUrl(url: String?): JMetaData?{
             try{
-                if(url!!.contains("=")) {
-                    val strArray = url!!.split("=")
-                    val metadata = JMetaData(url, null, strArray[1])
+                if(url!!.contains("v=")) {
+                    val strArray = url!!.split("v=")
+                    val metadata = JMetaData(url, null, strArray[1].subSequence(0, 11).toString())
                     val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
                     if(doc.select("meta[property=og:image]").size != 0)
                         metadata.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")

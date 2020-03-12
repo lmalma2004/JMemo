@@ -240,7 +240,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         captureImagePath = filePath.absolutePath + name
 
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        val uri = FileProvider.getUriForFile(this, "com.example.jmemo.fileprovider", File(captureImagePath))
+        val uri = FileProvider.getUriForFile(this, "com.jmemo.engine.fileprovider", File(captureImagePath))
         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
         if(takePictureIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)

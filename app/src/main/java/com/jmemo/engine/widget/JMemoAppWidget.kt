@@ -17,6 +17,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.AppWidgetTarget
 import com.jmemo.engine.R
 import com.jmemo.engine.activity.EditActivity
+import com.jmemo.engine.activity.EditVideoActivity
 import com.jmemo.engine.database.Memo
 
 /**
@@ -121,11 +122,28 @@ fun updateWidget(
     else{
         views.setImageViewResource(R.id.imageViewOfWidget, View.GONE)
     }
-
-    val intent = Intent(context, EditActivity::class.java)
-    intent.putExtra("id", memo.id)
-    val pi = PendingIntent.getActivity(context, appWidgetId, intent, PendingIntent.FLAG_CANCEL_CURRENT)
-    views.setOnClickPendingIntent(R.id.widgetView, pi)
+    if(memo.youTubeVideoId == "") {
+        val intent = Intent(context, EditActivity::class.java)
+        intent.putExtra("id", memo.id)
+        val pi = PendingIntent.getActivity(
+            context,
+            appWidgetId,
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+        views.setOnClickPendingIntent(R.id.widgetView, pi)
+    }
+    else{
+        val intent = Intent(context, EditVideoActivity::class.java)
+        intent.putExtra("id", memo.id)
+        val pi = PendingIntent.getActivity(
+            context,
+            appWidgetId,
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+        views.setOnClickPendingIntent(R.id.widgetView, pi)
+    }
 
     views.also {remoteViews ->
         appWidgetManager.updateAppWidget(appWidgetId, remoteViews)

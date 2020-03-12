@@ -15,8 +15,9 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:required="false"/>
-
-    <uses-feature android:name="android.hardware.camera2" />
+    <uses-feature
+        android:name="android.hardware.camera2"
+        android:required="false"/>
 
     <application
         android:name=".database.RealmJMemo"

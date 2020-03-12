@@ -16,8 +16,8 @@ class UrlDialogFragment : DialogFragment() {
 
     companion object{
         val INPUT_URL_FROM_DIALOG = "input_url_dialog"
-        fun getInstance() : YouTubeDialogFragment {
-            val e = YouTubeDialogFragment()
+        fun getInstance() : UrlDialogFragment {
+            val e = UrlDialogFragment()
             return e
         }
     }

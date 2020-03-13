@@ -18,6 +18,15 @@
     <uses-feature
         android:name="android.hardware.camera2"
         android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.faketouch"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.screen.portrait"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false"/>
 
     <application
         android:name=".database.RealmJMemo"

@@ -22,8 +22,7 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import com.jmemo.engine.*
-import com.jmemo.engine.R.id.deleteMenuItem
-import com.jmemo.engine.R.id.editMenuItem
+import com.jmemo.engine.R.id.*
 import com.jmemo.engine.widget.JMemoAppWidget
 import com.jmemo.engine.database.Memo
 import com.jmemo.engine.fragment.PhotoFragment
@@ -56,6 +55,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     private val deleteImages: ArrayList<String> = arrayListOf()
     private val menuItems: ArrayList<MenuItem> = arrayListOf()
     private var deleteMenu: MenuItem? = null
+    private var youTubeUrlMenu: MenuItem? = null
     private var captureImagePath: String? = null
     var id: Long = -1L //PrimaryKey
 
@@ -131,6 +131,8 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         menuInflater.inflate(R.menu.menu_edit, menu)
         val editMenu = menu!!.findItem(editMenuItem)
         deleteMenu = menu!!.findItem(deleteMenuItem)
+        youTubeUrlMenu = menu!!.findItem(youtubeUrlMenuItem)
+        youTubeUrlMenu?.setVisible(false)
         if(id == -1L) {
             setEditable(true)
             editMenu.setVisible(false)
@@ -159,6 +161,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
                 }
                 if(id == -1L)
                     deleteMenu!!.setVisible(false)
+                youTubeUrlMenu?.setVisible(false)
                 item.setVisible(false)
             }
             R.id.cameraMenuItem ->{

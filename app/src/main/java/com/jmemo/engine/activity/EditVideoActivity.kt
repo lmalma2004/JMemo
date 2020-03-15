@@ -35,8 +35,8 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
     private var addImage: String = ""
     private var addVideoId: String = ""
     private val calendar: Calendar = Calendar.getInstance()
-    private val YOUTUBE_URL = "https://www.youtube.com/watch?v="
-    private val YOUTUBE_MOBILE_URL ="https://youtu.be/"
+    private val YOUTUBE_URL = "v="
+    private val YOUTUBE_MOBILE_URL = ".be/"
     var id: Long = -1L //PrimaryKey
 
     inner class JMetaData(url:String?, imageUrl:String?, youTubeVideoId: String?) {

@@ -29,10 +29,6 @@ class JMemoAppWidgetSettingActivity : AppCompatActivity() {
         memoListRecyclerView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         val adapter = MemoGridRecyclerAdapterWidget(realmResult, this)
         memoListRecyclerView.adapter = adapter
-        realmResult.addChangeListener { _->
-            val adapter = memoListRecyclerView.adapter
-            adapter!!.notifyDataSetChanged()
-        }
-        //realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
+        realmResult.addChangeListener { _-> adapter.notifyDataSetChanged() }
     }
 }

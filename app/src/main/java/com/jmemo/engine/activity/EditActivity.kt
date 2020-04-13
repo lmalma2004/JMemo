@@ -30,7 +30,11 @@ import com.jmemo.engine.adapter.PhotoFragmentPagerAdapter
 import com.jmemo.engine.fragment.DeleteDialogFragment
 import com.jmemo.engine.fragment.UrlDialogFragment
 import com.jmemo.engine.fragment.YouTubeDialogFragment
+import io.realm.OrderedRealmCollectionChangeListener
 import io.realm.Realm
+import io.realm.RealmChangeListener
+import io.realm.RealmResults
+import io.realm.kotlin.addChangeListener
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_edit.*
@@ -109,6 +113,10 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     override fun onDestroy() {
         super.onDestroy()
         realm.close()
+    }
+    override fun onStop(){
+        super.onStop()
+        realm.removeAllChangeListeners()
     }
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -325,37 +333,34 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             finish()
             return
         }
-        realm.beginTransaction()
-        val newMemo = realm.createObject<Memo>(nextId())
-        setMemo(newMemo)
-        realm.commitTransaction()
-
-        alert("메모가 추가되었어요."){
-            yesButton { finish() }
-        }.show().setCancelable(false)
+        realm.executeTransaction { realmTransaction ->
+            val newMemo = realmTransaction.createObject<Memo>(nextId())
+            setMemo(newMemo)
+            alert("메모가 추가되었어요."){
+                yesButton { finish() }
+            }.show().setCancelable(false)
+        }
     }
     private fun updateMemo(id: Long){
-        realm.beginTransaction()
-        val updateMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        setMemo(updateMemo)
-        realm.commitTransaction()
-
-        alert("메모가 변경되었어요."){
-            yesButton { finish() }
-        }.show().setCancelable(false)
-        widgetUpdate()
+        realm.executeTransaction { realmTransaction ->
+            val updateMemo = realmTransaction.where<Memo>().equalTo("id", id).findFirstAsync()
+            setMemo(updateMemo)
+            alert("메모가 변경되었어요."){
+                yesButton { finish() }
+            }.show().setCancelable(false)
+            widgetUpdate()
+        }
     }
     fun deleteMemo(id: Long){
-        realm.beginTransaction()
-        val deleteMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        deleteMemo.deleteFromRealm()
-        realm.commitTransaction()
-
-        alert("메모가 삭제되었어요."){
-            yesButton { finish() }
-        }.show().setCancelable(false)
+        realm.executeTransaction { realmTransaction->
+            val deleteMemo = realmTransaction.where<Memo>().equalTo("id", id).findFirstAsync()
+            deleteMemo.deleteFromRealm()
+            alert("메모가 삭제되었어요."){
+                yesButton { finish() }
+            }.show().setCancelable(false)
+        }
     }
-    fun widgetUpdate(){
+    fun widgetUpdate() {
         val widgetIntent = Intent(this, JMemoAppWidget::class.java)
         widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
         this.sendBroadcast(widgetIntent)
@@ -364,32 +369,37 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     private fun setViewFromRealm(deleteButtonVisible: Boolean){
         if(id == -1L)
             return
-        val memo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        titleEditText.setText(memo.title)
-        bodyEditText.setText(memo.body)
-        if(id != -1L){
-            lastDateTextView.setText(DateFormat.format("마지막 수정: yyyy년 MM월 dd일", memo.lastDate))
-            initDateTextView.setText(DateFormat.format("만든 날짜: yyyy년 MM월 dd일", memo.initDate))
-            lastDateTextView.visibility = View.VISIBLE
-            initDateTextView.visibility = View.VISIBLE
-        }
-        setImageFromRealm(id, deleteButtonVisible)
+        val memo = realm.where<Memo>().equalTo("id", id).findFirstAsync()!!
+        memo?.addChangeListener(RealmChangeListener { listener ->
+            titleEditText.setText(memo.title)
+            bodyEditText.setText(memo.body)
+            if (id != -1L) {
+                lastDateTextView.setText(DateFormat.format("마지막 수정: yyyy년 MM월 dd일", memo.lastDate))
+                initDateTextView.setText(DateFormat.format("만든 날짜: yyyy년 MM월 dd일", memo.initDate))
+                lastDateTextView.visibility = View.VISIBLE
+                initDateTextView.visibility = View.VISIBLE
+            }
+            setImageFromRealm(id, deleteButtonVisible)
+        })
+
     }
     private fun setImageFromRealm(id: Long, deleteButtonVisible: Boolean){
-        val currMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        val images = currMemo.images
-        val fragments = ArrayList<Fragment>()
-        if(images.size != 0){
-            for(image in 0..images.size - 1){
-                fragments.add(PhotoFragment.newInstance(images[image]!!, id, deleteButtonVisible))
+        val currMemo = realm.where<Memo>().equalTo("id", id).findFirstAsync()!!
+        currMemo?.addChangeListener(RealmChangeListener { listener ->
+            val images = currMemo.images
+            val fragments = ArrayList<Fragment>()
+            if(images.size != 0){
+                for(image in 0..images.size - 1){
+                    fragments.add(PhotoFragment.newInstance(images[image]!!, id, deleteButtonVisible))
+                }
             }
-        }
-        val adapter = PhotoFragmentPagerAdapter(
-            supportFragmentManager,
-            FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        )
-        adapter.insertFragments(fragments)
-        viewPager.adapter = adapter
+            val adapter = PhotoFragmentPagerAdapter(
+                supportFragmentManager,
+                FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+            )
+            adapter.insertFragments(fragments)
+            viewPager.adapter = adapter
+        })
     }
     private fun setImageFromAddedImages(image: Int){
         val fragments = ArrayList<Fragment>()

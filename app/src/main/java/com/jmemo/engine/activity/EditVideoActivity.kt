@@ -1,5 +1,7 @@
 package com.jmemo.engine.activity
 
+import android.appwidget.AppWidgetManager
+import android.content.Intent
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -13,7 +15,10 @@ import com.jmemo.engine.R
 import com.jmemo.engine.database.Memo
 import com.jmemo.engine.fragment.DeleteDialogFragment
 import com.jmemo.engine.fragment.YouTubeDialogFragment
+import com.jmemo.engine.widget.JMemoAppWidget
+import com.jmemo.engine.widget.updateWidget
 import io.realm.Realm
+import io.realm.RealmChangeListener
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_edit_video.*
@@ -113,10 +118,18 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        id = intent.getLongExtra("id", -1L)
         setContentView(R.layout.activity_edit_video)
         setSupportActionBar(toolbarVideo)
-        id = intent.getLongExtra("id", -1L)
         setViewFromRealm(false)
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        realm.close()
+    }
+    override fun onStop(){
+        super.onStop()
+        realm.removeAllChangeListeners()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -194,22 +207,26 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
         if(id == -1L) {
             return
         }
-        val memo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        titleVideoEditText.setText(memo.title)
-        bodyVideoEditText.setText(memo.body)
-        if(id != -1L){
-            lastDateVideoTextView.setText(DateFormat.format("마지막 수정: yyyy년 MM월 dd일", memo.lastDate))
-            initDateVideoTextView.setText(DateFormat.format("만든 날짜: yyyy년 MM월 dd일", memo.initDate))
-            lastDateVideoTextView.visibility = View.VISIBLE
-            initDateVideoTextView.visibility = View.VISIBLE
-        }
-        setVideoFromRealm(id, deleteButtonVisible)
+        val memo = realm.where<Memo>().equalTo("id", id).findFirstAsync()!!
+        memo?.addChangeListener(RealmChangeListener { listener ->
+            titleVideoEditText.setText(memo.title)
+            bodyVideoEditText.setText(memo.body)
+            if(id != -1L){
+                lastDateVideoTextView.setText(DateFormat.format("마지막 수정: yyyy년 MM월 dd일", memo.lastDate))
+                initDateVideoTextView.setText(DateFormat.format("만든 날짜: yyyy년 MM월 dd일", memo.initDate))
+                lastDateVideoTextView.visibility = View.VISIBLE
+                initDateVideoTextView.visibility = View.VISIBLE
+            }
+            setVideoFromRealm(id, deleteButtonVisible)
+        })
     }
 
     private fun setVideoFromRealm(id: Long, deleteButtonVisible: Boolean){
-        val memo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        youtubePlayerView.visibility = View.VISIBLE
-        youtubePlayerView.play(memo.youTubeVideoId)
+        val memo = realm.where<Memo>().equalTo("id", id).findFirstAsync()!!
+        memo?.addChangeListener(RealmChangeListener { listener ->
+            youtubePlayerView.visibility = View.VISIBLE
+            youtubePlayerView.play(memo.youTubeVideoId)
+        })
     }
     private fun insertMemo(){
         if(addVideoId == ""){
@@ -217,34 +234,37 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
             finish()
             return
         }
-        realm.beginTransaction()
-        val newMemo = realm.createObject<Memo>(nextId())
-        setMemo(newMemo)
-        realm.commitTransaction()
-
-        alert("메모가 추가되었어요."){
-            yesButton { finish() }
-        }.show().setCancelable(false)
+        realm.executeTransaction { realmTransaction ->
+            val newMemo = realmTransaction.createObject<Memo>(nextId())
+            setMemo(newMemo)
+            alert("메모가 추가되었어요."){
+                yesButton { finish() }
+            }.show().setCancelable(false)
+        }
     }
     private fun updateMemo(id: Long){
-        realm.beginTransaction()
-        val updateMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        setMemo(updateMemo)
-        realm.commitTransaction()
-
-        alert("메모가 변경되었어요."){
-            yesButton { finish() }
-        }.show().setCancelable(false)
+        realm.executeTransaction { realmTransaction ->
+            val updateMemo = realmTransaction.where<Memo>().equalTo("id", id).findFirstAsync()!!
+            setMemo(updateMemo)
+            alert("메모가 변경되었어요."){
+                yesButton { finish() }
+            }.show().setCancelable(false)
+            widgetUpdate()
+        }
     }
     fun deleteMemo(id: Long){
-        realm.beginTransaction()
-        val deleteMemo = realm.where<Memo>().equalTo("id", id).findFirst()!!
-        deleteMemo.deleteFromRealm()
-        realm.commitTransaction()
-
-        alert("메모가 삭제되었어요."){
-            yesButton { finish() }
-        }.show().setCancelable(false)
+        realm.executeTransaction { realmTransaction ->
+            val deleteMemo = realmTransaction.where<Memo>().equalTo("id", id).findFirstAsync()!!
+            deleteMemo.deleteFromRealm()
+            alert("메모가 삭제되었어요."){
+                yesButton { finish() }
+            }.show().setCancelable(false)
+        }
+    }
+    fun widgetUpdate() {
+        val widgetIntent = Intent(this, JMemoAppWidget::class.java)
+        widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+        this.sendBroadcast(widgetIntent)
     }
     private fun setMemo(memo: Memo){
         memo.title = titleVideoEditText.text.toString()
@@ -279,52 +299,4 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
             return maxId.toInt() + 1
         return 0
     }
-
 }
-
-
-/*
-private var player : SimpleExoPlayer? = null
-private var playWhenReady = true
-private var currentWindow = 0
-private var playbackPosition = 0L
-private fun initializePlayer(){
-    if(player == null){
-        player = ExoPlayerFactory.newSimpleInstance(applicationContext)
-        exoPlayerView.player = player
-        //컨트롤러 없애기
-        exoPlayerView.useController = true
-        //사이즈 조절
-        //or RESIZE_MODE_FILL
-        exoPlayerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-    }
-    val sample = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-    val mediaSource = buildMediaSource(Uri.parse(sample))
-    player!!.prepare(mediaSource, true, false)
-    player!!.playWhenReady = playWhenReady
-}
-private fun buildMediaSource(uri : Uri): MediaSource{
-    val userAgent = Util.getUserAgent(this, "blackJin")
-    if(uri.lastPathSegment!!.contains("mp3") || uri.lastPathSegment!!.contains("mp4")){
-        return ExtractorMediaSource.Factory(DefaultHttpDataSourceFactory(userAgent)).createMediaSource(uri)
-    }
-    else if(uri.lastPathSegment!!.contains("m3u8")){
-        //com.google.android.exoplayer:exoplayer-hls 확장 라이브러리를 빌드 해야 합니다.
-        return HlsMediaSource.Factory(DefaultHttpDataSourceFactory(userAgent)).createMediaSource(uri)
-    }
-    else{
-        return ExtractorMediaSource.Factory(DefaultDataSourceFactory(this, userAgent)).createMediaSource(uri)
-    }
-}
-private fun releasePlayer(){
-    if(player != null){
-        playbackPosition = player!!.contentPosition
-        currentWindow = player!!.currentWindowIndex
-        playWhenReady = player!!.playWhenReady
-
-        exoPlayerView.player = null
-        player!!.release()
-        player = null
-    }
-}
-*/

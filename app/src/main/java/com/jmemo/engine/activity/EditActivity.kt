@@ -7,7 +7,6 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
@@ -29,13 +28,10 @@ import com.jmemo.engine.fragment.PhotoFragment
 import com.jmemo.engine.adapter.PhotoFragmentPagerAdapter
 import com.jmemo.engine.fragment.DeleteDialogFragment
 import com.jmemo.engine.fragment.UrlDialogFragment
-import com.jmemo.engine.fragment.YouTubeDialogFragment
-import io.realm.OrderedRealmCollectionChangeListener
 import io.realm.Realm
 import io.realm.RealmChangeListener
-import io.realm.RealmResults
-import io.realm.kotlin.addChangeListener
 import io.realm.kotlin.createObject
+import io.realm.kotlin.isValid
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_edit.*
 import org.jetbrains.anko.alert
@@ -63,39 +59,38 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     private var captureImagePath: String? = null
     var id: Long = -1L //PrimaryKey
 
-    inner class JMetaData(url: String?, imageUrl: String?) {
-        var url = url
-        var imageUrl = imageUrl
-    }
-    inner class JMetadataTask :AsyncTask<String, JMetaData, JMetaData>(){
-        var url: String = ""
-        override fun doInBackground(vararg params: String?): JMetaData? {
-            val jMetaData = getImageUrlFromUrl(url)
-            return jMetaData
-        }
-        override fun onPostExecute(result: JMetaData?) {
-            super.onPostExecute(result)
-            if(result == null) {
+    inner class JMetaData(val url: String?, var imageUrl: String)
+    inner class JMetadataTask(val url: String = "") : Runnable{
+        override fun run() {
+            val jMetadata = getImageUrlFromUrl(url);
+            if(jMetadata == null){
                 toast("URL 정보를 가져올 수 없어요. 인터넷 연결을 확인해주세요.")
                 return
             }
             val preSize = addedImages.size
-            if(result.imageUrl == "")
-                addImage(result!!.url!!)
+            if(jMetadata.imageUrl == "")
+                runOnUiThread {
+                    addImage(jMetadata!!.url!!)
+                    val currSize = addedImages.size
+                    if(preSize < currSize)
+                        setImageFromAddedImages(currSize - 1)
+                }
             else
-                addImage(result!!.imageUrl!!)
-            val currSize = addedImages.size
-            if(preSize < currSize)
-                setImageFromAddedImages(currSize - 1)
+                runOnUiThread {
+                    addImage(jMetadata!!.imageUrl!!)
+                    val currSize = addedImages.size
+                    if(preSize < currSize)
+                        setImageFromAddedImages(currSize - 1)
+                }
         }
-        private fun getImageUrlFromUrl(url: String?): JMetaData?{
+        private fun getImageUrlFromUrl(url: String): JMetaData?{
             try{
                 val metadata = JMetaData(url, "")
                 val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
                 if(doc.select("meta[property=og:image]").size != 0)
                     metadata.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
                 return metadata
-            }catch (e: Exception){
+            } catch (e: Exception){
                 e.printStackTrace()
                 return null
             }
@@ -162,7 +157,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item?.itemId){
-            R.id.editMenuItem ->{
+            editMenuItem ->{
                 setEditable(true)
                 for(menuItem in 0..menuItems.size - 1){
                     menuItems[menuItem].setVisible(true)
@@ -172,29 +167,29 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
                 youTubeUrlMenu?.setVisible(false)
                 item.setVisible(false)
             }
-            R.id.cameraMenuItem ->{
+            cameraMenuItem ->{
                 if(!isPermissionCAMERA())
                     permissionCAMERA()
                 else
                     sendTakePhotoIntent()
             }
-            R.id.albumMenuItem ->{
+            albumMenuItem ->{
                 if(!isPermissionGALLERY())
                     permissionGALLERY()
                 else
                     sendGalleyPhotoIntent()
             }
-            R.id.urlMenuItem ->{
+            urlMenuItem ->{
                 val uriDialogFragment = UrlDialogFragment.getInstance()
                 uriDialogFragment.show(supportFragmentManager, UrlDialogFragment.INPUT_URL_FROM_DIALOG)
             }
-            R.id.saveMenuItem ->{
+            saveMenuItem ->{
                 if(id == -1L)
                     insertMemo()
                 else
                     updateMemo(id)
             }
-            R.id.deleteMenuItem ->{
+            deleteMenuItem ->{
                 val deleteDialogFragment = DeleteDialogFragment.getInstance()
                 deleteDialogFragment.show(supportFragmentManager, DeleteDialogFragment.DELETE_DIALOG)
             }
@@ -237,9 +232,9 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             }.show()
             return
         }
-        val jMetaDataTask = JMetadataTask()
-        jMetaDataTask.url = url
-        jMetaDataTask.execute()
+        val jMetaDataTask = JMetadataTask(url)
+        val workerThread = Thread(jMetaDataTask)
+        workerThread.start()
     }
 
     private fun sendTakePhotoIntent(){
@@ -258,8 +253,8 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
         }
     }
     private fun sendGalleyPhotoIntent(){
-        val uri: Uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val intent: Intent = Intent(Intent.ACTION_PICK, uri)
+        val uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val intent = Intent(Intent.ACTION_PICK, uri)
         startActivityForResult(intent, REQUEST_IMAGE_GALLERY)
     }
 
@@ -354,7 +349,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     fun deleteMemo(id: Long){
         realm.executeTransaction { realmTransaction->
             val deleteMemo = realmTransaction.where<Memo>().equalTo("id", id).findFirstAsync()
-            deleteMemo.deleteFromRealm()
+            deleteMemo?.deleteFromRealm()
             alert("메모가 삭제되었어요."){
                 yesButton { finish() }
             }.show().setCancelable(false)
@@ -371,34 +366,54 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             return
         val memo = realm.where<Memo>().equalTo("id", id).findFirstAsync()!!
         memo?.addChangeListener(RealmChangeListener { listener ->
-            titleEditText.setText(memo.title)
-            bodyEditText.setText(memo.body)
-            if (id != -1L) {
-                lastDateTextView.setText(DateFormat.format("마지막 수정: yyyy년 MM월 dd일", memo.lastDate))
-                initDateTextView.setText(DateFormat.format("만든 날짜: yyyy년 MM월 dd일", memo.initDate))
-                lastDateTextView.visibility = View.VISIBLE
-                initDateTextView.visibility = View.VISIBLE
+            if(memo.isValid) {
+                titleEditText.setText(memo.title)
+                bodyEditText.setText(memo.body)
+                if (id != -1L) {
+                    lastDateTextView.setText(
+                        DateFormat.format(
+                            "마지막 수정: yyyy년 MM월 dd일",
+                            memo.lastDate
+                        )
+                    )
+                    initDateTextView.setText(
+                        DateFormat.format(
+                            "만든 날짜: yyyy년 MM월 dd일",
+                            memo.initDate
+                        )
+                    )
+                    lastDateTextView.visibility = View.VISIBLE
+                    initDateTextView.visibility = View.VISIBLE
+                }
+                setImageFromRealm(id, deleteButtonVisible)
             }
-            setImageFromRealm(id, deleteButtonVisible)
         })
 
     }
     private fun setImageFromRealm(id: Long, deleteButtonVisible: Boolean){
         val currMemo = realm.where<Memo>().equalTo("id", id).findFirstAsync()!!
         currMemo?.addChangeListener(RealmChangeListener { listener ->
-            val images = currMemo.images
-            val fragments = ArrayList<Fragment>()
-            if(images.size != 0){
-                for(image in 0..images.size - 1){
-                    fragments.add(PhotoFragment.newInstance(images[image]!!, id, deleteButtonVisible))
+            if(currMemo.isValid) {
+                val images = currMemo.images
+                val fragments = ArrayList<Fragment>()
+                if (images.size != 0) {
+                    for (image in 0..images.size - 1) {
+                        fragments.add(
+                            PhotoFragment.newInstance(
+                                images[image]!!,
+                                id,
+                                deleteButtonVisible
+                            )
+                        )
+                    }
                 }
+                val adapter = PhotoFragmentPagerAdapter(
+                    supportFragmentManager,
+                    FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+                )
+                adapter.insertFragments(fragments)
+                viewPager.adapter = adapter
             }
-            val adapter = PhotoFragmentPagerAdapter(
-                supportFragmentManager,
-                FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-            )
-            adapter.insertFragments(fragments)
-            viewPager.adapter = adapter
         })
     }
     private fun setImageFromAddedImages(image: Int){

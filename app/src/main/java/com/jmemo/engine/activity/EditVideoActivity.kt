@@ -16,7 +16,6 @@ import com.jmemo.engine.database.Memo
 import com.jmemo.engine.fragment.DeleteDialogFragment
 import com.jmemo.engine.fragment.YouTubeDialogFragment
 import com.jmemo.engine.widget.JMemoAppWidget
-import com.jmemo.engine.widget.updateWidget
 import io.realm.Realm
 import io.realm.RealmChangeListener
 import io.realm.kotlin.createObject
@@ -33,54 +32,46 @@ import java.util.*
 
 class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteractionListener, AppCompatActivity() {
     private val realm = Realm.getDefaultInstance()
-    private var deleteMenu: MenuItem? = null
-    private var saveMenu: MenuItem? = null
-    private var youtubeUrlMenu: MenuItem? = null
+    private var deleteMenu: MenuItem?      = null
+    private var saveMenu: MenuItem?        = null
+    private var youtubeUrlMenu: MenuItem?  = null
     private val menuItems: ArrayList<MenuItem> = arrayListOf()
-    private var addImage: String = ""
+    private var addImage: String   = ""
     private var addVideoId: String = ""
     private val calendar: Calendar = Calendar.getInstance()
-    private val YOUTUBE_URL = "v="
+    private val YOUTUBE_URL        = "v="
     private val YOUTUBE_MOBILE_URL = ".be/"
     var id: Long = -1L //PrimaryKey
 
-    inner class JMetaData(url:String?, imageUrl:String?, youTubeVideoId: String?) {
-        var url = url
-        var imageUrl = imageUrl
-        var youTubeVideoId = youTubeVideoId
-    }
-    inner class JMetadataTask : AsyncTask<String, JMetaData, JMetaData>(){
-        var url: String = ""
-        override fun doInBackground(vararg params: String?): JMetaData? {
+    inner class JMetaData(val url:String?, var imageUrl:String?, var youTubeVideoId: String?)
+    inner class JMetadataTask(val url:String = "") : Runnable{
+        override fun run() {
             val jMetaData = getVideoIdFromUrl(url)
-            return jMetaData
-        }
-        override fun onPostExecute(result: JMetaData?) {
-            super.onPostExecute(result)
-            if(result == null) {
+            if(jMetaData == null){
                 toast("URL 정보를 가져올 수 없어요. 인터넷 연결을 확인해주세요.")
                 return
             }
-            if(result.youTubeVideoId == null)
-                result.youTubeVideoId = ""
-            if(result.youTubeVideoId != "") {
-                if(result.imageUrl != "")
-                    addImage = result.imageUrl!!
-                addVideoId = result.youTubeVideoId!!
-                val newYoutubePlayerView = YouTubePlayerView(this@EditVideoActivity)
-                val layoutParams = ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.WRAP_CONTENT)
-                setLayoutParams(layoutParams)
-                newYoutubePlayerView.layoutParams = layoutParams
-
-                editVideoConstraint.addView(newYoutubePlayerView)
-                editVideoConstraint.removeView(youtubePlayerView)
-                newYoutubePlayerView.play(addVideoId)
+            if(jMetaData.youTubeVideoId == null)
+                jMetaData.youTubeVideoId = ""
+            if(jMetaData.youTubeVideoId != "") {
+                if(jMetaData.imageUrl != "")
+                    addImage = jMetaData.imageUrl!!
+                addVideoId = jMetaData.youTubeVideoId!!
+                runOnUiThread {
+                    val newYoutubePlayerView = YouTubePlayerView(this@EditVideoActivity)
+                    val layoutParams = ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.WRAP_CONTENT)
+                    setLayoutParams(layoutParams)
+                    newYoutubePlayerView.layoutParams = layoutParams
+                    editVideoConstraint.addView(newYoutubePlayerView)
+                    editVideoConstraint.removeView(youtubePlayerView)
+                    newYoutubePlayerView.play(addVideoId)
+                }
             }
         }
-        private fun getVideoIdFromUrl(url: String?): JMetaData?{
+        private fun getVideoIdFromUrl(url: String): JMetaData?{
             try{
-                if(url!!.contains("v=")) {
-                    val strArray = url!!.split("v=")
+                if(url.contains("v=")) {
+                    val strArray = url.split("v=")
                     val metadata = JMetaData(url, null, strArray[1].subSequence(0, 11).toString())
                     val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
                     if(doc.select("meta[property=og:image]").size != 0)
@@ -121,7 +112,7 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
         id = intent.getLongExtra("id", -1L)
         setContentView(R.layout.activity_edit_video)
         setSupportActionBar(toolbarVideo)
-        setViewFromRealm(false)
+        setViewFromRealm()
     }
     override fun onDestroy() {
         super.onDestroy()
@@ -191,42 +182,71 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
         }
         return super.onOptionsItemSelected(item)
     }
-    private fun setEditable(editable: Boolean){
-        if(editable){
-            titleVideoEditText.isEnabled = true
-            bodyVideoEditText.isEnabled = true
-            setViewFromRealm(true)
+    override fun onYouTubeDialogFragmentInteraction(url: String) {
+        if(!url.contains(YOUTUBE_URL) && !url.contains(YOUTUBE_MOBILE_URL)){
+            alert("유효하지 않은 YOUTUBE 주소에요."){
+                yesButton {}
+            }.show()
+            return
         }
-        else{
-            titleVideoEditText.isEnabled = false
-            bodyVideoEditText.isEnabled = false
-        }
+        val jMetaDataTask = JMetadataTask(url)
+        val workerThread = Thread(jMetaDataTask)
+        workerThread.start()
     }
 
-    private fun setViewFromRealm(deleteButtonVisible: Boolean){
+    private fun setViewFromRealm(){
         if(id == -1L) {
             return
         }
         val memo = realm.where<Memo>().equalTo("id", id).findFirstAsync()!!
         memo?.addChangeListener(RealmChangeListener { listener ->
-            titleVideoEditText.setText(memo.title)
-            bodyVideoEditText.setText(memo.body)
-            if(id != -1L){
-                lastDateVideoTextView.setText(DateFormat.format("마지막 수정: yyyy년 MM월 dd일", memo.lastDate))
-                initDateVideoTextView.setText(DateFormat.format("만든 날짜: yyyy년 MM월 dd일", memo.initDate))
-                lastDateVideoTextView.visibility = View.VISIBLE
-                initDateVideoTextView.visibility = View.VISIBLE
+            if(memo.isValid) {
+                titleVideoEditText.setText(memo.title)
+                bodyVideoEditText.setText(memo.body)
+                if (id != -1L) {
+                    lastDateVideoTextView.setText(
+                        DateFormat.format(
+                            "마지막 수정: yyyy년 MM월 dd일",
+                            memo.lastDate
+                        )
+                    )
+                    initDateVideoTextView.setText(
+                        DateFormat.format(
+                            "만든 날짜: yyyy년 MM월 dd일",
+                            memo.initDate
+                        )
+                    )
+                    lastDateVideoTextView.visibility = View.VISIBLE
+                    initDateVideoTextView.visibility = View.VISIBLE
+                }
+                setVideoFromRealm(id)
             }
-            setVideoFromRealm(id, deleteButtonVisible)
+        })
+    }
+    private fun setVideoFromRealm(id: Long){
+        val memo = realm.where<Memo>().equalTo("id", id).findFirstAsync()!!
+        memo?.addChangeListener(RealmChangeListener { listener ->
+            if(memo.isValid) {
+                youtubePlayerView.visibility = View.VISIBLE
+                youtubePlayerView.play(memo.youTubeVideoId)
+            }
         })
     }
 
-    private fun setVideoFromRealm(id: Long, deleteButtonVisible: Boolean){
-        val memo = realm.where<Memo>().equalTo("id", id).findFirstAsync()!!
-        memo?.addChangeListener(RealmChangeListener { listener ->
-            youtubePlayerView.visibility = View.VISIBLE
-            youtubePlayerView.play(memo.youTubeVideoId)
-        })
+    private fun setMemo(memo: Memo){
+        memo.title = titleVideoEditText.text.toString()
+        memo.lastDate = calendar.timeInMillis
+        if(memo.initDate == 0L)
+            memo.initDate = memo.lastDate
+        memo.body = bodyVideoEditText.text.toString()
+        if(addVideoId != "")
+            memo.youTubeVideoId = addVideoId
+        if(addImage != "") {
+            if(memo.images.size == 0)
+                memo.images.add(addImage)
+            else
+                memo.images[0] = addImage
+        }
     }
     private fun insertMemo(){
         if(addVideoId == ""){
@@ -252,6 +272,7 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
             widgetUpdate()
         }
     }
+
     fun deleteMemo(id: Long){
         realm.executeTransaction { realmTransaction ->
             val deleteMemo = realmTransaction.where<Memo>().equalTo("id", id).findFirstAsync()!!
@@ -266,37 +287,22 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
         widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
         this.sendBroadcast(widgetIntent)
     }
-    private fun setMemo(memo: Memo){
-        memo.title = titleVideoEditText.text.toString()
-        memo.lastDate = calendar.timeInMillis
-        if(memo.initDate == 0L)
-            memo.initDate = memo.lastDate
-        memo.body = bodyVideoEditText.text.toString()
-        if(addVideoId != "")
-            memo.youTubeVideoId = addVideoId
-        if(addImage != "") {
-            if(memo.images.size == 0)
-                memo.images.add(addImage)
-            else
-                memo.images[0] = addImage
-        }
-    }
-    override fun onYouTubeDialogFragmentInteraction(url: String) {
-        if(!url.contains(YOUTUBE_URL) && !url.contains(YOUTUBE_MOBILE_URL)){
-            alert("유효하지 않은 YOUTUBE 주소에요."){
-                yesButton {}
-            }.show()
-            return
-        }
-        val jMetaDataTask = JMetadataTask()
-        jMetaDataTask.url = url
-        jMetaDataTask.execute()
-    }
 
     private fun nextId(): Int{
         val maxId = realm.where<Memo>().max("id")
         if(maxId != null)
             return maxId.toInt() + 1
         return 0
+    }
+    private fun setEditable(editable: Boolean){
+        if(editable){
+            titleVideoEditText.isEnabled = true
+            bodyVideoEditText.isEnabled = true
+            setViewFromRealm()
+        }
+        else{
+            titleVideoEditText.isEnabled = false
+            bodyVideoEditText.isEnabled = false
+        }
     }
 }

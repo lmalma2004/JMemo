@@ -31,7 +31,7 @@ class UrlDialogFragment : DialogFragment() {
         val cancelButton = v.findViewById(R.id.cancelButton) as Button
 
         okButton.setOnClickListener {
-            onUriDialogFragmentInteractionListener!!.onUriDialogFragmentInteraction(urlEditText.text.toString())
+            onUriDialogFragmentInteractionListener?.onUriDialogFragmentInteraction(urlEditText.text.toString())
             dismiss()
         }
         cancelButton.setOnClickListener {

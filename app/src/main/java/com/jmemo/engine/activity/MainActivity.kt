@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
     private val realm = Realm.getDefaultInstance()
     private val STAGGERGRIDTYPE = 0
     private val LINEARTYPE      = 1
-    private var currLayout = STAGGERGRIDTYPE
+    private var currLayout      = STAGGERGRIDTYPE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

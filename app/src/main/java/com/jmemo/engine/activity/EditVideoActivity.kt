@@ -21,6 +21,10 @@ import io.realm.RealmChangeListener
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_edit_video.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kr.co.prnd.YouTubePlayerView
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.toast
@@ -44,67 +48,68 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
     var id: Long = -1L //PrimaryKey
 
     inner class JMetaData(val url:String?, var imageUrl:String?, var youTubeVideoId: String?)
-    inner class JMetadataTask(val url:String = "") : Runnable{
-        override fun run() {
-            val jMetaData = getVideoIdFromUrl(url)
-            if(jMetaData == null){
-                toast("URL 정보를 가져올 수 없어요. 인터넷 연결을 확인해주세요.")
-                return
-            }
-            if(jMetaData.youTubeVideoId == null)
-                jMetaData.youTubeVideoId = ""
-            if(jMetaData.youTubeVideoId != "") {
-                if(jMetaData.imageUrl != "")
-                    addImage = jMetaData.imageUrl!!
-                addVideoId = jMetaData.youTubeVideoId!!
-                runOnUiThread {
-                    val newYoutubePlayerView = YouTubePlayerView(this@EditVideoActivity)
-                    val layoutParams = ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.WRAP_CONTENT)
-                    setLayoutParams(layoutParams)
-                    newYoutubePlayerView.layoutParams = layoutParams
-                    editVideoConstraint.addView(newYoutubePlayerView)
-                    editVideoConstraint.removeView(youtubePlayerView)
-                    newYoutubePlayerView.play(addVideoId)
-                }
+    suspend fun setVideo(url: String){
+        val jMetaData = getVideoIdFromUrl(url)
+        if(jMetaData == null){
+            toast("URL 정보를 가져올 수 없어요. 인터넷 연결을 확인해주세요.")
+            return
+        }
+        if(jMetaData.youTubeVideoId == null)
+            jMetaData.youTubeVideoId = ""
+        if(jMetaData.youTubeVideoId != "") {
+            if(jMetaData.imageUrl != "")
+                addImage = jMetaData.imageUrl!!
+            addVideoId = jMetaData.youTubeVideoId!!
+            withContext(Dispatchers.Main){
+                val newYoutubePlayerView = YouTubePlayerView(this@EditVideoActivity)
+                val layoutParams = ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.WRAP_CONTENT)
+                setLayoutParams(layoutParams)
+                newYoutubePlayerView.layoutParams = layoutParams
+                editVideoConstraint.addView(newYoutubePlayerView)
+                editVideoConstraint.removeView(youtubePlayerView)
+                newYoutubePlayerView.play(addVideoId)
             }
         }
-        private fun getVideoIdFromUrl(url: String): JMetaData?{
+    }
+    suspend fun getVideoIdFromUrl(url: String) : JMetaData?{
+        var metadata: JMetaData? = null
+        withContext(Dispatchers.IO){
             try{
                 if(url.contains("v=")) {
                     val strArray = url.split("v=")
-                    val metadata = JMetaData(url, null, strArray[1].subSequence(0, 11).toString())
                     val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
+                    metadata = JMetaData(url, null, strArray[1].subSequence(0, 11).toString())
                     if(doc.select("meta[property=og:image]").size != 0)
-                        metadata.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
-                    return metadata
+                        metadata!!.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
                 }
                 else{
                     val strArray = url!!.split(".be/")
-                    val metadata = JMetaData(url, null, strArray[1])
                     val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
+                    metadata = JMetaData(url, null, strArray[1])
                     if(doc.select("meta[property=og:image]").size != 0)
-                        metadata.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
-                    return metadata
+                        metadata!!.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
                 }
             }catch (e: Exception){
                 e.printStackTrace()
-                return null
+                metadata = null
             }
         }
-        private fun getRealDp(num: Int) : Int{
-            return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, num.toFloat(), getResources().getDisplayMetrics()).toInt()
-        }
-        private fun setLayoutParams(layoutParams: ConstraintLayout.LayoutParams){
-            layoutParams.marginStart = getRealDp(16)
-            layoutParams.topMargin = getRealDp(8)
-            layoutParams.marginEnd = getRealDp(16)
-            layoutParams.bottomMargin = getRealDp(2)
-            layoutParams.bottomToTop = lastDateVideoTextView.id
-            layoutParams.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-            layoutParams.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-            layoutParams.topToBottom = bodyVideoEditText.id
-            layoutParams.horizontalBias = 0.78f
-        }
+        return metadata
+    }
+
+    private fun getRealDp(num: Int) : Int{
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, num.toFloat(), getResources().getDisplayMetrics()).toInt()
+    }
+    private fun setLayoutParams(layoutParams: ConstraintLayout.LayoutParams){
+        layoutParams.marginStart = getRealDp(16)
+        layoutParams.topMargin = getRealDp(8)
+        layoutParams.marginEnd = getRealDp(16)
+        layoutParams.bottomMargin = getRealDp(2)
+        layoutParams.bottomToTop = lastDateVideoTextView.id
+        layoutParams.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+        layoutParams.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+        layoutParams.topToBottom = bodyVideoEditText.id
+        layoutParams.horizontalBias = 0.78f
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -189,9 +194,7 @@ class EditVideoActivity : YouTubeDialogFragment.OnYouTubeDialogFragmentInteracti
             }.show()
             return
         }
-        val jMetaDataTask = JMetadataTask(url)
-        val workerThread = Thread(jMetaDataTask)
-        workerThread.start()
+        GlobalScope.launch { setVideo(url) }
     }
 
     private fun setViewFromRealm(){

@@ -34,6 +34,7 @@ import io.realm.kotlin.createObject
 import io.realm.kotlin.isValid
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_edit.*
+import kotlinx.coroutines.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.toast
 import org.jetbrains.anko.yesButton
@@ -43,6 +44,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.lang.Exception
+import java.lang.Runnable
 import java.util.*
 
 class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, AppCompatActivity() {
@@ -60,41 +62,41 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
     var id: Long = -1L //PrimaryKey
 
     inner class JMetaData(val url: String?, var imageUrl: String)
-    inner class JMetadataTask(val url: String = "") : Runnable{
-        override fun run() {
-            val jMetadata = getImageUrlFromUrl(url);
-            if(jMetadata == null){
-                toast("URL 정보를 가져올 수 없어요. 인터넷 연결을 확인해주세요.")
-                return
-            }
-            val preSize = addedImages.size
-            if(jMetadata.imageUrl == "")
-                runOnUiThread {
-                    addImage(jMetadata!!.url!!)
-                    val currSize = addedImages.size
-                    if(preSize < currSize)
-                        setImageFromAddedImages(currSize - 1)
-                }
-            else
-                runOnUiThread {
-                    addImage(jMetadata!!.imageUrl!!)
-                    val currSize = addedImages.size
-                    if(preSize < currSize)
-                        setImageFromAddedImages(currSize - 1)
-                }
+    suspend fun setImage(url: String){
+        var jMetadata = getImageUrlFromUrl(url)
+        if(jMetadata == null){
+            toast("URL 정보를 가져올 수 없어요. 인터넷 연결을 확인해주세요.")
+            return
         }
-        private fun getImageUrlFromUrl(url: String): JMetaData?{
+        val preSize = addedImages.size
+        val tmpUrl = (jMetadata as JMetaData).url
+        val tmpImageUrl = (jMetadata as JMetaData).imageUrl
+
+        withContext(Dispatchers.Main){
+            if(tmpImageUrl == "")
+                addImage(tmpUrl!!)
+            else
+                addImage(tmpImageUrl)
+
+            val currSize = addedImages.size
+            if(preSize < currSize)
+                setImageFromAddedImages(currSize - 1)
+        }
+    }
+    suspend fun getImageUrlFromUrl(url: String): JMetaData?{
+        var metadata : JMetaData? = null
+        withContext(Dispatchers.IO){
             try{
-                val metadata = JMetaData(url, "")
+                metadata = JMetaData(url, "")
                 val doc: Document = Jsoup.connect(url).ignoreContentType(true).get()
                 if(doc.select("meta[property=og:image]").size != 0)
-                    metadata.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
-                return metadata
+                    metadata?.imageUrl = doc.select("meta[property=og:image]").get(0).attr("content")
             } catch (e: Exception){
                 e.printStackTrace()
-                return null
+                metadata = null
             }
         }
+        return metadata
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -232,9 +234,7 @@ class EditActivity : UrlDialogFragment.OnUriDialogFragmentInteractionListener, A
             }.show()
             return
         }
-        val jMetaDataTask = JMetadataTask(url)
-        val workerThread = Thread(jMetaDataTask)
-        workerThread.start()
+        GlobalScope.launch { setImage(url) }
     }
 
     private fun sendTakePhotoIntent(){

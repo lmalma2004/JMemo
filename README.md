@@ -6,9 +6,9 @@
 	- minSdkVersion: 21
 	- targetSdkVersion: 27 이상
 
-#### 사용언어
+#### 사용기술
 
-- Kotlin
+- Kotlin / Realm / Glide / Anko / Jsoup
 
 #### 기능1 :  메모리스트
 
